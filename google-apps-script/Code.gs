@@ -4,13 +4,6 @@
  * File Google Sheets ID: 1MRgOcAVzDqfZy4VbH2Xt_noqCaGX6HWBoFZY5ydnAWY
  * Tên Sheet: Danh_Sach_Tong_Hop
  * Email nhận thông báo hồ sơ mới: huynhthaichau.generali@gmail.com
- *
- * Chức năng:
- * 1. Nhận toàn bộ 32 trường thông tin từ Web Form Mobile (Cột B -> Cột AG)
- * 2. Tự động tìm dòng trống tiếp theo từ Dòng 4 trở đi (bảo toàn công thức cột A - STT)
- * 3. Tự động lưu 2 ảnh chụp Scan CCCD (Mặt trước & Mặt sau) vào Google Drive
- * 4. Ghi trạng thái "Đã tải lên" vào cột AF & AG kèm đường link xem ảnh trực tiếp
- * 5. Tự động gửi Email thông báo hồ sơ CTV GenRe mới về huynhthaichau.generali@gmail.com
  * ============================================================================
  */
 
@@ -19,9 +12,6 @@ const TARGET_SHEET_NAME = 'Danh_Sach_Tong_Hop';
 const DRIVE_FOLDER_NAME = 'GENRE_2026_ANH_CCCD_KHACH_HANG';
 const ADMIN_NOTIFY_EMAIL = 'huynhthaichau.generali@gmail.com';
 
-/**
- * Hỗ trợ kiểm tra trạng thái hoạt động của Web App
- */
 function doGet(e) {
   return ContentService
     .createTextOutput(JSON.stringify({
@@ -34,9 +24,6 @@ function doGet(e) {
     .setMimeType(ContentService.MimeType.JSON);
 }
 
-/**
- * Nhận dữ liệu POST từ Web Form khi Cộng tác viên GenRe bấm "Gửi Hồ Sơ Đăng Ký"
- */
 function doPost(e) {
   try {
     if (!e || !e.postData || !e.postData.contents) {
@@ -49,6 +36,7 @@ function doPost(e) {
     return ContentService
       .createTextOutput(JSON.stringify({
         success: true,
+        stt: result.stt,
         rowNumber: result.rowNumber,
         frontImageUrl: result.frontImageUrl,
         backImageUrl: result.backImageUrl,
@@ -66,7 +54,27 @@ function doPost(e) {
 }
 
 /**
- * Xử lý ghi dữ liệu vào cột B -> AG, lưu 2 mặt ảnh CCCD và gửi Gmail thông báo
+ * Sửa toàn bộ lỗi #ERROR! ở cột A (STT) trên Sheet bằng số thứ tự chuẩn (1, 2, 3...)
+ */
+function repairAllSTTColumn(sheet) {
+  const maxRow = Math.max(sheet.getLastRow(), 35);
+  const numRows = maxRow - 3;
+  if (numRows <= 0) return;
+
+  const dataRange = sheet.getRange(4, 3, numRows, 3).getValues(); // Cột C..E (Họ, Tên đệm, Tên)
+  const sttUpdates = [];
+
+  for (let i = 0; i < numRows; i++) {
+    const hasName = dataRange[i].some(cell => String(cell || '').trim() !== '');
+    sttUpdates.push([hasName ? (i + 1) : '']);
+  }
+
+  // Ghi trực tiếp giá trị số thứ tự (xóa bỏ hoàn toàn công thức gây #ERROR! do khác dấu , / ;)
+  sheet.getRange(4, 1, numRows, 1).setValues(sttUpdates);
+}
+
+/**
+ * Xử lý ghi dữ liệu vào cột A -> AG, lưu 2 mặt ảnh CCCD và gửi Gmail thông báo
  */
 function processFormSubmission(payload) {
   const lock = LockService.getScriptLock();
@@ -115,51 +123,51 @@ function processFormSubmission(payload) {
       targetRow = maxRows + 1;
     }
 
-    // 3. Đảm bảo Cột A (STT) có công thức tự đánh số thứ tự
-    const sttCell = sheet.getRange(targetRow, 1);
-    if (!sttCell.getFormula()) {
-      sttCell.setFormula(`=IF(COUNTA(C${targetRow}:E${targetRow})>0, ROW()-3, "")`);
-    }
+    const sttNumber = targetRow - 3;
 
-    // 4. Chuẩn bị mảng 32 cột từ Cột B (2) đến Cột AG (33)
-    const rowValues = [
-      f.danhXung || '',
-      f.ho || '',
-      f.tenDem || '',
-      f.ten || '',
-      f.ngaySinh || '',
-      f.gioiTinh || '',
-      f.noiSinh || '',
-      f.tinhTrangHonNhan || '',
-      f.quocTich || 'Việt Nam',
-      f.loaiGiayTo || 'Căn cước Công dân',
-      f.soGiayTo ? `'${f.soGiayTo}` : '',
-      f.noiCap || '',
-      f.ngayCap || '',
-      f.loaiGiayToCu || '',
-      f.soGiayToCu ? `'${f.soGiayToCu}` : '',
-      f.noiCapCu || '',
-      f.ngayCapCu || '',
-      f.thanhPhoTinh || '',
-      f.phuongXa || '',
-      f.soNhaTenDuong || '',
-      f.email || '',
-      f.dienThoai ? `'${f.dienThoai}` : '',
-      f.dongYNhanThongTin || 'Đồng ý',
-      f.soTaiKhoan ? `'${f.soTaiKhoan}` : '',
-      f.tenTaiKhoan || '',
-      f.maSoNganHang || '',
-      f.tenNganHang || '',
-      f.maSoChiNhanh || '',
-      f.tenChiNhanh || '',
-      f.diaChiChiNhanh || '',
-      frontImageUrl ? 'Đã tải lên' : (f.cccdMatTruocStatus || 'Chưa đính kèm'),
-      backImageUrl ? 'Đã tải lên' : (f.cccdMatSauStatus || 'Chưa đính kèm')
+    // 3. Chuẩn bị mảng đầy đủ 33 cột từ Cột A (STT = 1) đến Cột AG (33)
+    const fullRowValues = [
+      sttNumber,                                // A (1): STT (Ghi số trực tiếp, không bao giờ bị #ERROR!)
+      f.danhXung || '',                         // B (2): Danh xưng*
+      f.ho || '',                               // C (3): Họ*
+      f.tenDem || '',                           // D (4): Tên đệm
+      f.ten || '',                              // E (5): Tên*
+      f.ngaySinh || '',                         // F (6): Ngày sinh*
+      f.gioiTinh || '',                         // G (7): Giới tính*
+      f.noiSinh || '',                          // H (8): Nơi sinh*
+      f.tinhTrangHonNhan || '',                 // I (9): Tình trạng hôn nhân*
+      f.quocTich || 'Việt Nam',                 // J (10): Quốc tịch*
+      f.loaiGiayTo || 'Căn cước Công dân',      // K (11): Loại giấy tờ*
+      f.soGiayTo ? `'${f.soGiayTo}` : '',       // L (12): CMND/CCCD*
+      f.noiCap || '',                           // M (13): Nơi cấp CMND/CCCD*
+      f.ngayCap || '',                          // N (14): Ngày cấp CMND/CCCD*
+      f.loaiGiayToCu || '',                     // O (15): Loại giấy tờ (cũ)
+      f.soGiayToCu ? `'${f.soGiayToCu}` : '',   // P (16): CMND/CCCD Cũ
+      f.noiCapCu || '',                         // Q (17): Nơi cấp CMND/CCCD Cũ
+      f.ngayCapCu || '',                        // R (18): Ngày cấp CMND/CCCD Cũ
+      f.thanhPhoTinh || '',                     // S (19): Thành phố/ Tỉnh*
+      f.phuongXa || '',                         // T (20): Phường/ Xã*
+      f.soNhaTenDuong || '',                    // U (21): Số nhà, tên đường*
+      f.email || '',                            // V (22): Email/ thư điện tử*
+      f.dienThoai ? `'${f.dienThoai}` : '',     // W (23): Điện thoại di động*
+      f.dongYNhanThongTin || 'Đồng ý',          // X (24): Đồng ý nhận thông tin từ Generali Việt Nam*
+      f.soTaiKhoan ? `'${f.soTaiKhoan}` : '',   // Y (25): Số tài khoản*
+      f.tenTaiKhoan || '',                      // Z (26): Tên tài khoản*
+      f.maSoNganHang || '',                     // AA (27): Mã số ngân hàng*
+      f.tenNganHang || '',                      // AB (28): Tên ngân hàng
+      f.maSoChiNhanh || '',                     // AC (29): Mã số chi nhánh/ PGD*
+      f.tenChiNhanh || '',                      // AD (30): Tên Chi nhánh/ PGD
+      f.diaChiChiNhanh || '',                   // AE (31): Địa chỉ Chi nhánh
+      frontImageUrl ? 'Đã tải lên' : (f.cccdMatTruocStatus || 'Chưa đính kèm'), // AF (32)
+      backImageUrl ? 'Đã tải lên' : (f.cccdMatSauStatus || 'Chưa đính kèm')     // AG (33)
     ];
 
-    sheet.getRange(targetRow, 2, 1, rowValues.length).setValues([rowValues]);
+    sheet.getRange(targetRow, 1, 1, fullRowValues.length).setValues([fullRowValues]);
 
-    // 5. Gắn Link bấm trực tiếp vào chữ "Đã tải lên" ở cột AF (32) và AG (33)
+    // Làm sạch luôn các công thức lỗi ở các dòng khác trong cột STT
+    repairAllSTTColumn(sheet);
+
+    // 4. Gắn Link bấm trực tiếp vào chữ "Đã tải lên" ở cột AF (32) và AG (33)
     if (frontImageUrl) {
       const cellAF = sheet.getRange(targetRow, 32);
       const richAF = SpreadsheetApp.newRichTextValue()
@@ -180,7 +188,7 @@ function processFormSubmission(payload) {
       cellAG.setNote('Link ảnh CCCD Mặt sau:\n' + backImageUrl);
     }
 
-    // 6. Gửi Email thông báo về huynhthaichau.generali@gmail.com
+    // 5. Gửi Email thông báo về huynhthaichau.generali@gmail.com
     const emailSent = sendNewApplicantNotificationEmail(
       f,
       targetRow,
@@ -190,6 +198,7 @@ function processFormSubmission(payload) {
     );
 
     return {
+      stt: sttNumber,
       rowNumber: targetRow,
       frontImageUrl: frontImageUrl,
       backImageUrl: backImageUrl,
@@ -308,26 +317,32 @@ function sendNewApplicantNotificationEmail(f, rowNumber, frontImageUrl, backImag
 }
 
 /**
- * Chạy hàm này 1 lần trong Apps Script để cấp quyền gửi Email (MailApp) & gửi thử 1 email kiểm tra
+ * Bấm Chạy (Run) hàm này 1 lần trong Apps Script để:
+ * 1) Sửa ngay lỗi #ERROR! ở cột STT trên Google Sheet
+ * 2) Cấp quyền gửi Gmail và bắn thử 1 email về huynhthaichau.generali@gmail.com
  */
 function testSendNotificationEmail() {
+  const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+  const sheet = ss.getSheetByName(TARGET_SHEET_NAME) || ss.getSheets()[0];
+  repairAllSTTColumn(sheet);
+
   sendNewApplicantNotificationEmail(
     {
       danhXung: 'Anh',
       ho: 'NGUYỄN',
-      tenDem: 'VĂN',
-      ten: 'AN',
+      tenDem: 'MINH',
+      ten: 'KHÔI (TEST MẪU)',
       ngaySinh: '15/08/1995',
       gioiTinh: 'Nam',
-      soGiayTo: '079095001234',
-      ngayCap: '10/05/2022',
-      dienThoai: '0901234567',
-      email: 'nguyenvanan@gmail.com',
+      soGiayTo: '079095008899',
+      ngayCap: '22/11/2022',
+      dienThoai: '0909123456',
+      email: 'nguyenminhkhoi.test@gmail.com',
       soNhaTenDuong: '43-45 Tú Xương',
       phuongXa: 'Phường Xuân Hòa',
       thanhPhoTinh: 'Thành phố Hồ Chí Minh',
-      soTaiKhoan: '0071001234567',
-      tenTaiKhoan: 'NGUYEN VAN AN',
+      soTaiKhoan: '0071009988776',
+      tenTaiKhoan: 'NGUYEN MINH KHOI',
       tenNganHang: 'Vietcombank'
     },
     4,
@@ -337,9 +352,6 @@ function testSendNotificationEmail() {
   );
 }
 
-/**
- * Giải mã Base64 và lưu thành file ảnh JPG trong thư mục Google Drive
- */
 function saveBase64ImageToDrive(base64DataUrl, fileName) {
   try {
     const folders = DriveApp.getFoldersByName(DRIVE_FOLDER_NAME);
