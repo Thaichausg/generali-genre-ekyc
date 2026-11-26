@@ -513,9 +513,9 @@ class CCCDScanner {
             }
         }
 
-        // 3. Số CCCD / CMND, Ngày cấp, Nơi cấp
+        // 3. Số CCCD, Ngày cấp, Nơi cấp
         if (data.cccd) {
-            setVal('loaiGiayTo', data.cccd.length === 9 ? 'Chứng minh Nhân dân' : 'Căn cước Công dân');
+            setVal('loaiGiayTo', 'Căn cước Công dân');
             setVal('soGiayTo', data.cccd);
         }
         if (data.noiCap) setVal('noiCap', data.noiCap);

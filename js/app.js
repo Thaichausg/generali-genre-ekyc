@@ -567,15 +567,11 @@ function validateAllFields() {
     requireField('noiSinh', 'Nơi sinh');
     requireField('tinhTrangHonNhan', 'Tình trạng hôn nhân');
     requireField('quocTich', 'Quốc tịch');
-    requireField('loaiGiayTo', 'Loại giấy tờ');
 
-    if (requireField('soGiayTo', 'CMND/CCCD')) {
-        const loai = document.getElementById('loaiGiayTo').value;
+    if (requireField('soGiayTo', 'Số CCCD')) {
         const so = document.getElementById('soGiayTo').value.trim();
-        if (loai === 'Căn cước Công dân' && !/^\d{12}$/.test(so)) {
+        if (!/^\d{12}$/.test(so)) {
             markInvalid('soGiayTo', 'CCCD phải gồm 12 chữ số');
-        } else if (loai === 'Chứng minh Nhân dân' && !/^(\d{9}|\d{12})$/.test(so)) {
-            markInvalid('soGiayTo', 'CMND phải gồm 9 hoặc 12 chữ số');
         }
     }
     requireField('noiCap', 'Nơi cấp');

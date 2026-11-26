@@ -158,31 +158,22 @@
                         <p class="field-error-msg hidden"></p>
                     </div>
 
+                    <input type="hidden" id="loaiGiayTo" value="Căn cước Công dân" />
+
                     <div class="flat-field">
-                        <label class="flat-label">Loại giấy tờ <span class="req">*</span></label>
-                        <input type="hidden" id="loaiGiayTo" value="Căn cước Công dân" />
-                        <div class="segmented-track" data-target="loaiGiayTo">
-                            <button type="button" class="seg-pill active" data-val="Căn cước Công dân" onclick="selectSegmented('loaiGiayTo', 'Căn cước Công dân')">CCCD</button>
-                            <button type="button" class="seg-pill" data-val="Chứng minh Nhân dân" onclick="selectSegmented('loaiGiayTo', 'Chứng minh Nhân dân')">CMND</button>
-                            <button type="button" class="seg-pill" data-val="Hộ chiếu" onclick="selectSegmented('loaiGiayTo', 'Hộ chiếu')">Hộ chiếu</button>
-                        </div>
+                        <label for="soGiayTo" class="flat-label">Số CCCD <span class="req">*</span></label>
+                        <input type="text" id="soGiayTo" inputmode="numeric" maxlength="12" class="flat-input form-input font-mono-num" />
                         <p class="field-error-msg hidden"></p>
                     </div>
 
                     <div class="flat-field">
-                        <label for="soGiayTo" class="flat-label">CMND/CCCD <span class="req">*</span></label>
-                        <input type="text" id="soGiayTo" inputmode="numeric" maxlength="15" class="flat-input form-input font-mono-num" />
-                        <p class="field-error-msg hidden"></p>
-                    </div>
-
-                    <div class="flat-field">
-                        <label for="ngayCap" class="flat-label">Ngày cấp CMND/CCCD <span class="req">*</span></label>
+                        <label for="ngayCap" class="flat-label">Ngày cấp CCCD <span class="req">*</span></label>
                         <input type="date" id="ngayCap" class="flat-input form-input font-mono-num" />
                         <p class="field-error-msg hidden"></p>
                     </div>
 
                     <div class="flat-field">
-                        <label for="noiCap" class="flat-label">Nơi cấp CMND/CCCD <span class="req">*</span></label>
+                        <label for="noiCap" class="flat-label">Nơi cấp CCCD <span class="req">*</span></label>
                         <input type="text" id="noiCap" list="issuePlacesList" class="flat-input form-input" value="Cục Cảnh sát quản lý hành chính về trật tự xã hội" />
                         <datalist id="issuePlacesList"></datalist>
                         <p class="field-error-msg hidden"></p>
@@ -334,7 +325,7 @@
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div id="cccdCardFront" class="id-card-slot space-y-3">
                             <div class="flex items-center justify-between">
-                                <span class="text-sm font-bold text-gray-800">CMND/CCCD - Mặt trước <span class="text-[#C21B17]">*</span></span>
+                                <span class="text-sm font-bold text-gray-800">CCCD - Mặt trước <span class="text-[#C21B17]">*</span></span>
                                 <span id="badgeStatusFront" class="text-xs font-bold px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-700">Chưa có</span>
                             </div>
 
@@ -360,7 +351,7 @@
 
                         <div id="cccdCardBack" class="id-card-slot space-y-3">
                             <div class="flex items-center justify-between">
-                                <span class="text-sm font-bold text-gray-800">CMND/CCCD - Mặt sau <span class="text-[#C21B17]">*</span></span>
+                                <span class="text-sm font-bold text-gray-800">CCCD - Mặt sau <span class="text-[#C21B17]">*</span></span>
                                 <span id="badgeStatusBack" class="text-xs font-bold px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-700">Chưa có</span>
                             </div>
 
