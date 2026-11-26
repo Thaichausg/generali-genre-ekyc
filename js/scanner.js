@@ -442,7 +442,7 @@ class CCCDScanner {
         if (mainBanner && mainBannerText && message) {
             mainBanner.classList.remove('hidden');
             mainBannerText.innerHTML = isLoading
-                ? `<span class="inline-block w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin mr-1.5 align-middle"></span>${message}`
+                ? `<span class="inline-block w-3.5 h-3.5 border-2 border-emerald-700 border-t-transparent rounded-full animate-spin mr-1.5 align-middle"></span>${message}`
                 : message;
         }
     }
@@ -533,19 +533,18 @@ class CCCDScanner {
             setVal('soGiayToCu', data.oldCmnd);
         }
 
-        // 5. Địa chỉ thường trú / cư trú (Thành phố/Tỉnh, Phường/Xã, Số nhà/Tên đường)
+        // 5. Địa chỉ liên lạc theo dữ liệu hành chính mới đã sáp nhập (34 Tỉnh/Thành + Phường/Xã mới)
         if (data.thanhPhoTinh) {
             setVal('thanhPhoTinh', data.thanhPhoTinh);
+            if (typeof window.populateWardsForProvince === 'function') {
+                window.populateWardsForProvince(data.thanhPhoTinh, data.phuongXa || '');
+            }
             const noiSinhEl = document.getElementById('noiSinh');
             if (noiSinhEl && !noiSinhEl.value) {
                 setVal('noiSinh', data.thanhPhoTinh);
             }
-        }
-        if (data.phuongXa) {
-            const curPX = document.getElementById('phuongXa')?.value || '';
-            if (!curPX || isQRSource || countVietnameseDiacritics(data.phuongXa) >= countVietnameseDiacritics(curPX)) {
-                setVal('phuongXa', data.phuongXa);
-            }
+        } else if (data.phuongXa && typeof window.trySelectMergedWard === 'function') {
+            window.trySelectMergedWard(data.phuongXa);
         }
         if (data.soNhaTenDuong) {
             const curSN = document.getElementById('soNhaTenDuong')?.value || '';
@@ -686,7 +685,7 @@ class CCCDScanner {
         const topThumb = document.getElementById(side === 'front' ? 'topScanThumbFront' : 'topScanThumbBack');
         if (topBadge) {
             topBadge.textContent = side === 'front' ? '✓ Mặt trước: Đã có' : '✓ Mặt sau: Đã có';
-            topBadge.className = 'truncate text-emerald-300 font-bold';
+            topBadge.className = 'truncate text-emerald-700 font-bold';
         }
         if (topThumb) {
             topThumb.src = dataUrl;

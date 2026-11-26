@@ -4,70 +4,42 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
     <meta name="theme-color" content="#FFFFFF" />
-    <meta name="apple-mobile-web-app-capable" content="yes" />
-    <title>GENRE eKYC — Generali Việt Nam</title>
+    <title>Đăng Ký Hồ Sơ GENRE — Generali Việt Nam</title>
 
-    <!-- Google Fonts: Plus Jakarta Sans & JetBrains Mono -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
-    <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
 
-    <!-- eKYC Libraries: ZXing C++ WASM + jsQR + Tesseract v5 LSTM Vietnamese OCR -->
     <script src="https://cdn.jsdelivr.net/npm/zxing-wasm@2.2.4/dist/iife/reader/index.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 
-    <!-- Native Mobile UI Stylesheet -->
     <link rel="stylesheet" href="css/style.css" />
 </head>
 <body>
-    <!-- Khung thông báo Toast chuẩn iOS Dynamic Island -->
-    <div id="toastContainer" class="fixed top-3 left-1/2 -translate-x-1/2 z-50 w-11/12 max-w-[400px] space-y-2 pointer-events-none"></div>
+    <div id="toastContainer" class="fixed top-3 left-1/2 -translate-x-1/2 z-50 w-11/12 max-w-[460px] space-y-2 pointer-events-none"></div>
 
-    <!-- Input File ẩn cho Chụp & Tải ảnh CCCD -->
     <input type="file" id="batchUploadInput" accept="image/*" multiple class="hidden" />
     <input type="file" id="fileInputFront" accept="image/*" class="hidden" />
     <input type="file" id="fileInputBack" accept="image/*" class="hidden" />
     <input type="file" id="cameraInputFront" accept="image/*" capture="environment" class="hidden" />
     <input type="file" id="cameraInputBack" accept="image/*" capture="environment" class="hidden" />
 
-    <!-- KHUNG NATIVE MOBILE VIEWPORT -->
-    <div class="native-app-viewport">
-
-        <!-- 1. THANH ĐIỀU HƯỚNG NATIVE TOP BAR (Frosted Glass) -->
-        <header class="native-topbar">
-            <div class="px-4 pt-3.5 pb-2.5 flex items-center justify-between">
-                <div>
-                    <div class="flex items-center gap-1.5">
-                        <span class="text-[11px] font-extrabold tracking-widest uppercase text-[#C21B17]">GENERALI</span>
-                        <span class="w-1 h-1 rounded-full bg-gray-300"></span>
-                        <span class="text-[10px] font-bold text-gray-500">HỒ SƠ GENRE</span>
-                    </div>
-                    <h1 class="text-[15px] font-extrabold text-gray-900 leading-tight">Đăng Ký Thông Tin</h1>
+    <div class="flat-app-container">
+        <!-- HEADER PHẲNG, RỘNG, KHÔNG NÚT THỪA -->
+        <header class="flat-header">
+            <div class="px-4 pt-4 pb-3">
+                <div class="flex items-center gap-2">
+                    <span class="text-xs font-extrabold tracking-wider uppercase text-[#C21B17]">GENERALI VIỆT NAM</span>
+                    <span class="text-gray-300">•</span>
+                    <span class="text-xs font-bold text-gray-500 uppercase">HỒ SƠ GENRE</span>
                 </div>
-
-                <!-- Cụm nút Tạo mới (Reset) & Cài đặt Sheet / QR -->
-                <div class="flex items-center gap-1.5">
-                    <button type="button" onclick="confirmResetForm()" class="h-8 px-2.5 rounded-full bg-red-50 active:bg-red-100 text-[#C21B17] text-[11px] font-bold flex items-center gap-1 transition" title="Xóa trắng để tạo hồ sơ mới">
-                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.3" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                        </svg>
-                        <span>Tạo mới</span>
-                    </button>
-
-                    <button type="button" onclick="toggleSettingsModal(true)" class="h-8 px-2.5 rounded-full bg-gray-100 active:bg-gray-200 text-gray-700 text-[11px] font-bold flex items-center gap-1.5 transition">
-                        <span id="sheetConnectionStatus" class="flex items-center">
-                            <span class="w-2 h-2 rounded-full bg-amber-400 inline-block mr-1.5"></span>Sheet
-                        </span>
-                    </button>
-                </div>
+                <h1 class="text-lg font-extrabold text-gray-900 mt-0.5">Đăng Ký Thông Tin</h1>
             </div>
 
-            <!-- Thanh Pill chuyển nhanh 4 vùng -->
-            <nav class="section-nav-scroll">
+            <nav class="flat-nav-tabs">
                 <a href="#secCaNhan" class="nav-pill active">Cá nhân</a>
                 <a href="#secLienLac" class="nav-pill">Địa chỉ</a>
                 <a href="#secNganHang" class="nav-pill">Ngân hàng</a>
@@ -75,451 +47,344 @@
             </nav>
         </header>
 
-        <!-- 2. NỘI DUNG CUỘN CỦA ỨNG DỤNG -->
-        <main id="mainFormContainer" class="flex-1 px-3.5 pt-3.5 pb-6">
-            <form id="genreRegistrationForm" onsubmit="event.preventDefault();" class="space-y-5">
+        <!-- NỘI DUNG FORM PHẲNG RỘNG -->
+        <main id="mainFormContainer" class="flex-1 px-4 py-4">
+            <form id="genreRegistrationForm" onsubmit="event.preventDefault();" class="space-y-4">
 
-                <!-- =========================================================================
-                     SIGNATURE eKYC DOCK: NÚT SCAN CCCD (TRÍCH XUẤT TỰ ĐỘNG + ĐÍNH KÈM)
-                     ========================================================================= -->
-                <div class="ekyc-hero-card space-y-3">
-                    <div class="flex items-center justify-between">
-                        <div class="flex items-center gap-2">
-                            <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-                            <span class="text-[11px] font-extrabold uppercase tracking-wider text-red-100">eKYC Tự Động Điền & Đính Kèm</span>
-                        </div>
-                        <span class="text-[10px] font-semibold bg-black/25 px-2 py-0.5 rounded-full text-red-100">CCCD 2 Mặt</span>
-                    </div>
-
-                    <!-- 2 Nút Hành Động Chính -->
-                    <div class="grid grid-cols-2 gap-2.5">
-                        <button type="button" onclick="window.cccdScanner.openCamera('front', true)" class="ekyc-action-btn ekyc-btn-camera">
-                            <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2.3" viewBox="0 0 24 24">
+                <!-- NÚT SCAN CCCD -->
+                <div class="flat-scan-bar space-y-3">
+                    <div class="grid grid-cols-2 gap-3">
+                        <button type="button" onclick="window.cccdScanner.openCamera('front', true)" class="flat-scan-btn flat-scan-btn-primary">
+                            <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M3 7V5a2 2 0 012-2h2m10 0h2a2 2 0 012 2v2m0 10v2a2 2 0 01-2 2h-2M7 21H5a2 2 0 01-2-2v-2m4-5h10" />
                             </svg>
                             <span>Chụp Scan CCCD</span>
                         </button>
 
-                        <button type="button" onclick="document.getElementById('batchUploadInput').click()" class="ekyc-action-btn ekyc-btn-upload">
-                            <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2.3" viewBox="0 0 24 24">
+                        <button type="button" onclick="document.getElementById('batchUploadInput').click()" class="flat-scan-btn flat-scan-btn-outline">
+                            <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
                             </svg>
                             <span>Up Hình CCCD</span>
                         </button>
                     </div>
 
-                    <!-- Thông báo kết quả bóc tách tự động -->
-                    <div id="scanExtractResultBanner" class="hidden px-3 py-2 rounded-xl bg-black/30 border border-white/20 text-white text-xs font-medium">
+                    <div id="scanExtractResultBanner" class="hidden px-3.5 py-2.5 rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-semibold">
                         <span id="scanExtractResultText"></span>
                     </div>
 
-                    <!-- 2 Ô trạng thái đính kèm Mặt trước & Mặt sau ngay trên thẻ eKYC -->
-                    <div class="grid grid-cols-2 gap-2">
-                        <a href="#secDinhKem" class="ekyc-mini-slot">
+                    <div class="grid grid-cols-2 gap-3">
+                        <a href="#secDinhKem" class="flat-slot-pill">
                             <span id="topScanBadgeFront" class="truncate">Mặt trước: Chưa có</span>
-                            <img id="topScanThumbFront" src="" alt="" class="hidden w-7 h-4.5 object-cover rounded border border-white/40 shrink-0 ml-1" />
+                            <img id="topScanThumbFront" src="" alt="" class="hidden w-8 h-5 object-cover rounded border border-gray-300 shrink-0 ml-2" />
                         </a>
-                        <a href="#secDinhKem" class="ekyc-mini-slot">
+                        <a href="#secDinhKem" class="flat-slot-pill">
                             <span id="topScanBadgeBack" class="truncate">Mặt sau: Chưa có</span>
-                            <img id="topScanThumbBack" src="" alt="" class="hidden w-7 h-4.5 object-cover rounded border border-white/40 shrink-0 ml-1" />
+                            <img id="topScanThumbBack" src="" alt="" class="hidden w-8 h-5 object-cover rounded border border-gray-300 shrink-0 ml-2" />
                         </a>
                     </div>
                 </div>
 
-                <!-- =========================================================
-                     NHÓM 1: 1. THÔNG TIN CÁ NHÂN (Cột B -> J)
-                     ========================================================= -->
-                <section id="secCaNhan" class="space-y-1.5">
-                    <div class="app-section-label">
-                        <span>1. Thông Tin Cá Nhân</span>
-                        <span class="text-[10px] font-medium normal-case text-gray-400">Tự động viết hoa Họ Tên</span>
+                <!-- 1. THÔNG TIN CÁ NHÂN -->
+                <section id="secCaNhan" class="flat-section">
+                    <h2 class="flat-section-title">1. Thông Tin Cá Nhân</h2>
+
+                    <div class="flat-field">
+                        <label class="flat-label">Danh xưng <span class="req">*</span></label>
+                        <input type="hidden" id="danhXung" value="Anh" />
+                        <div class="segmented-track" data-target="danhXung">
+                            <button type="button" class="seg-pill active" data-val="Anh" onclick="selectSegmented('danhXung', 'Anh')">Anh</button>
+                            <button type="button" class="seg-pill" data-val="Chị" onclick="selectSegmented('danhXung', 'Chị')">Chị</button>
+                            <button type="button" class="seg-pill" data-val="Ông" onclick="selectSegmented('danhXung', 'Ông')">Ông</button>
+                            <button type="button" class="seg-pill" data-val="Bà" onclick="selectSegmented('danhXung', 'Bà')">Bà</button>
+                        </div>
+                        <p class="field-error-msg hidden"></p>
                     </div>
 
-                    <div class="native-group-card">
-                        <!-- Danh xưng (Cột B) & Giới tính (Cột G) bằng Segmented Pill chạm 1 ngón -->
-                        <div class="native-cell-grid" style="border-top: none;">
-                            <div class="native-cell">
-                                <label class="cell-label">Danh xưng <span class="req">*</span></label>
-                                <input type="hidden" id="danhXung" value="Anh" />
-                                <div class="segmented-track" data-target="danhXung">
-                                    <button type="button" class="seg-pill active" data-val="Anh" onclick="selectSegmented('danhXung', 'Anh')">Anh</button>
-                                    <button type="button" class="seg-pill" data-val="Chị" onclick="selectSegmented('danhXung', 'Chị')">Chị</button>
-                                    <button type="button" class="seg-pill" data-val="Ông" onclick="selectSegmented('danhXung', 'Ông')">Ông</button>
-                                    <button type="button" class="seg-pill" data-val="Bà" onclick="selectSegmented('danhXung', 'Bà')">Bà</button>
-                                </div>
-                                <p class="field-error-msg hidden"></p>
-                            </div>
-
-                            <div class="native-cell">
-                                <label class="cell-label">Giới tính <span class="req">*</span></label>
-                                <input type="hidden" id="gioiTinh" value="Nam" />
-                                <div class="segmented-track" data-target="gioiTinh">
-                                    <button type="button" class="seg-pill active" data-val="Nam" onclick="selectSegmented('gioiTinh', 'Nam')">Nam</button>
-                                    <button type="button" class="seg-pill" data-val="Nữ" onclick="selectSegmented('gioiTinh', 'Nữ')">Nữ</button>
-                                </div>
-                                <p class="field-error-msg hidden"></p>
-                            </div>
+                    <div class="flat-field">
+                        <label class="flat-label">Giới tính <span class="req">*</span></label>
+                        <input type="hidden" id="gioiTinh" value="Nam" />
+                        <div class="segmented-track" data-target="gioiTinh">
+                            <button type="button" class="seg-pill active" data-val="Nam" onclick="selectSegmented('gioiTinh', 'Nam')">Nam</button>
+                            <button type="button" class="seg-pill" data-val="Nữ" onclick="selectSegmented('gioiTinh', 'Nữ')">Nữ</button>
                         </div>
-
-                        <!-- Họ (Cột C) | Tên đệm (Cột D) | Tên (Cột E) -->
-                        <div class="native-cell-grid-3">
-                            <div class="native-cell">
-                                <label for="ho" class="cell-label">Họ <span class="req">*</span></label>
-                                <input type="text" id="ho" class="cell-input form-input uppercase" placeholder="NGUYỄN" autocomplete="family-name" />
-                                <p class="field-error-msg hidden"></p>
-                            </div>
-                            <div class="native-cell">
-                                <label for="tenDem" class="cell-label">Tên đệm</label>
-                                <input type="text" id="tenDem" class="cell-input form-input uppercase" placeholder="VĂN" autocomplete="additional-name" />
-                            </div>
-                            <div class="native-cell">
-                                <label for="ten" class="cell-label">Tên <span class="req">*</span></label>
-                                <input type="text" id="ten" class="cell-input form-input uppercase" placeholder="AN" autocomplete="given-name" />
-                                <p class="field-error-msg hidden"></p>
-                            </div>
-                        </div>
-
-                        <!-- Ngày sinh (Cột F) & Nơi sinh (Cột H) -->
-                        <div class="native-cell-grid">
-                            <div class="native-cell">
-                                <label for="ngaySinh" class="cell-label">Ngày sinh <span class="req">*</span></label>
-                                <input type="date" id="ngaySinh" class="cell-input form-input font-mono-num" />
-                                <p class="field-error-msg hidden"></p>
-                            </div>
-                            <div class="native-cell">
-                                <label for="noiSinh" class="cell-label">Nơi sinh <span class="req">*</span></label>
-                                <div class="cell-select-wrap form-select-wrapper">
-                                    <select id="noiSinh" class="cell-select form-select">
-                                        <option value="">Chọn Tỉnh/TP</option>
-                                    </select>
-                                </div>
-                                <p class="field-error-msg hidden"></p>
-                            </div>
-                        </div>
-
-                        <!-- Tình trạng hôn nhân (Cột I) bằng Segmented Control -->
-                        <div class="native-cell">
-                            <label class="cell-label">Tình trạng hôn nhân <span class="req">*</span></label>
-                            <input type="hidden" id="tinhTrangHonNhan" value="Độc thân" />
-                            <div class="segmented-track" data-target="tinhTrangHonNhan">
-                                <button type="button" class="seg-pill active" data-val="Độc thân" onclick="selectSegmented('tinhTrangHonNhan', 'Độc thân')">Độc thân</button>
-                                <button type="button" class="seg-pill" data-val="Đã lập gia đình" onclick="selectSegmented('tinhTrangHonNhan', 'Đã lập gia đình')">Kết hôn</button>
-                                <button type="button" class="seg-pill" data-val="Ly hôn" onclick="selectSegmented('tinhTrangHonNhan', 'Ly hôn')">Ly hôn</button>
-                                <button type="button" class="seg-pill" data-val="Góa" onclick="selectSegmented('tinhTrangHonNhan', 'Góa')">Góa</button>
-                            </div>
-                            <p class="field-error-msg hidden"></p>
-                        </div>
-
-                        <!-- Quốc tịch (Cột J) -->
-                        <div class="native-cell">
-                            <div class="flex items-center justify-between">
-                                <label for="quocTich" class="cell-label mb-0">Quốc tịch <span class="req">*</span></label>
-                                <input type="text" id="quocTich" class="cell-input form-input text-right w-40" value="Việt Nam" />
-                            </div>
-                            <p class="field-error-msg hidden"></p>
-                        </div>
-                    </div>
-                </section>
-
-                <!-- =========================================================
-                     NHÓM 1B: GIẤY TỜ TÙY THÂN (Cột K -> R)
-                     ========================================================= -->
-                <section class="space-y-1.5">
-                    <div class="app-section-label">
-                        <span>Giấy Tờ Định Danh</span>
+                        <p class="field-error-msg hidden"></p>
                     </div>
 
-                    <div class="native-group-card">
-                        <!-- Loại giấy tờ (Cột K) -->
-                        <div class="native-cell">
-                            <label class="cell-label">Loại giấy tờ <span class="req">*</span></label>
-                            <input type="hidden" id="loaiGiayTo" value="Căn cước Công dân" />
-                            <div class="segmented-track" data-target="loaiGiayTo">
-                                <button type="button" class="seg-pill active" data-val="Căn cước Công dân" onclick="selectSegmented('loaiGiayTo', 'Căn cước Công dân')">CCCD</button>
-                                <button type="button" class="seg-pill" data-val="Chứng minh Nhân dân" onclick="selectSegmented('loaiGiayTo', 'Chứng minh Nhân dân')">CMND</button>
-                                <button type="button" class="seg-pill" data-val="Hộ chiếu" onclick="selectSegmented('loaiGiayTo', 'Hộ chiếu')">Hộ chiếu</button>
-                            </div>
-                            <p class="field-error-msg hidden"></p>
-                        </div>
+                    <div class="flat-field">
+                        <label for="ho" class="flat-label">Họ <span class="req">*</span></label>
+                        <input type="text" id="ho" class="flat-input form-input uppercase" autocomplete="family-name" />
+                        <p class="field-error-msg hidden"></p>
+                    </div>
 
-                        <!-- Số CMND/CCCD (Cột L) & Ngày cấp (Cột N) -->
-                        <div class="native-cell-grid">
-                            <div class="native-cell">
-                                <label for="soGiayTo" class="cell-label">Số CMND/CCCD <span class="req">*</span></label>
-                                <input type="text" id="soGiayTo" inputmode="numeric" maxlength="15" class="cell-input form-input font-mono-num text-[15.5px]" placeholder="07909900xxxx" />
-                                <p class="field-error-msg hidden"></p>
-                            </div>
-                            <div class="native-cell">
-                                <label for="ngayCap" class="cell-label">Ngày cấp <span class="req">*</span></label>
-                                <input type="date" id="ngayCap" class="cell-input form-input font-mono-num" />
-                                <p class="field-error-msg hidden"></p>
-                            </div>
-                        </div>
+                    <div class="flat-field">
+                        <label for="tenDem" class="flat-label">Tên đệm</label>
+                        <input type="text" id="tenDem" class="flat-input form-input uppercase" autocomplete="additional-name" />
+                    </div>
 
-                        <!-- Nơi cấp (Cột M) -->
-                        <div class="native-cell">
-                            <label for="noiCap" class="cell-label">Nơi cấp CMND/CCCD <span class="req">*</span></label>
-                            <input type="text" id="noiCap" list="issuePlacesList" class="cell-input form-input" value="Cục Cảnh sát quản lý hành chính về trật tự xã hội" placeholder="Nhập hoặc chọn nơi cấp" />
-                            <datalist id="issuePlacesList"></datalist>
-                            <p class="field-error-msg hidden"></p>
-                        </div>
+                    <div class="flat-field">
+                        <label for="ten" class="flat-label">Tên <span class="req">*</span></label>
+                        <input type="text" id="ten" class="flat-input form-input uppercase" autocomplete="given-name" />
+                        <p class="field-error-msg hidden"></p>
+                    </div>
 
-                        <!-- Switch iOS bật/tắt CMND/CCCD Cũ (Cột O -> R) -->
-                        <div class="native-cell flex items-center justify-between">
-                            <div>
-                                <div class="text-[13px] font-bold text-gray-800">Bổ sung CMND/CCCD (cũ)</div>
-                                <div class="text-[11px] text-gray-400">Tự động bật khi mã QR có số CMND 9 số</div>
-                            </div>
+                    <div class="flat-field">
+                        <label for="ngaySinh" class="flat-label">Ngày sinh <span class="req">*</span></label>
+                        <input type="date" id="ngaySinh" class="flat-input form-input font-mono-num" />
+                        <p class="field-error-msg hidden"></p>
+                    </div>
+
+                    <div class="flat-field">
+                        <label for="noiSinh" class="flat-label">Nơi sinh <span class="req">*</span></label>
+                        <div class="flat-select-wrap">
+                            <select id="noiSinh" class="flat-select form-select">
+                                <option value="">-- Chọn --</option>
+                            </select>
+                        </div>
+                        <p class="field-error-msg hidden"></p>
+                    </div>
+
+                    <div class="flat-field">
+                        <label class="flat-label">Tình trạng hôn nhân <span class="req">*</span></label>
+                        <input type="hidden" id="tinhTrangHonNhan" value="Độc thân" />
+                        <div class="segmented-track" data-target="tinhTrangHonNhan">
+                            <button type="button" class="seg-pill active" data-val="Độc thân" onclick="selectSegmented('tinhTrangHonNhan', 'Độc thân')">Độc thân</button>
+                            <button type="button" class="seg-pill" data-val="Đã lập gia đình" onclick="selectSegmented('tinhTrangHonNhan', 'Đã lập gia đình')">Đã lập GĐ</button>
+                            <button type="button" class="seg-pill" data-val="Ly hôn" onclick="selectSegmented('tinhTrangHonNhan', 'Ly hôn')">Ly hôn</button>
+                            <button type="button" class="seg-pill" data-val="Góa" onclick="selectSegmented('tinhTrangHonNhan', 'Góa')">Góa</button>
+                        </div>
+                        <p class="field-error-msg hidden"></p>
+                    </div>
+
+                    <div class="flat-field">
+                        <label for="quocTich" class="flat-label">Quốc tịch <span class="req">*</span></label>
+                        <input type="text" id="quocTich" class="flat-input form-input" value="Việt Nam" />
+                        <p class="field-error-msg hidden"></p>
+                    </div>
+
+                    <div class="flat-field">
+                        <label class="flat-label">Loại giấy tờ <span class="req">*</span></label>
+                        <input type="hidden" id="loaiGiayTo" value="Căn cước Công dân" />
+                        <div class="segmented-track" data-target="loaiGiayTo">
+                            <button type="button" class="seg-pill active" data-val="Căn cước Công dân" onclick="selectSegmented('loaiGiayTo', 'Căn cước Công dân')">CCCD</button>
+                            <button type="button" class="seg-pill" data-val="Chứng minh Nhân dân" onclick="selectSegmented('loaiGiayTo', 'Chứng minh Nhân dân')">CMND</button>
+                            <button type="button" class="seg-pill" data-val="Hộ chiếu" onclick="selectSegmented('loaiGiayTo', 'Hộ chiếu')">Hộ chiếu</button>
+                        </div>
+                        <p class="field-error-msg hidden"></p>
+                    </div>
+
+                    <div class="flat-field">
+                        <label for="soGiayTo" class="flat-label">CMND/CCCD <span class="req">*</span></label>
+                        <input type="text" id="soGiayTo" inputmode="numeric" maxlength="15" class="flat-input form-input font-mono-num" />
+                        <p class="field-error-msg hidden"></p>
+                    </div>
+
+                    <div class="flat-field">
+                        <label for="ngayCap" class="flat-label">Ngày cấp CMND/CCCD <span class="req">*</span></label>
+                        <input type="date" id="ngayCap" class="flat-input form-input font-mono-num" />
+                        <p class="field-error-msg hidden"></p>
+                    </div>
+
+                    <div class="flat-field">
+                        <label for="noiCap" class="flat-label">Nơi cấp CMND/CCCD <span class="req">*</span></label>
+                        <input type="text" id="noiCap" list="issuePlacesList" class="flat-input form-input" value="Cục Cảnh sát quản lý hành chính về trật tự xã hội" />
+                        <datalist id="issuePlacesList"></datalist>
+                        <p class="field-error-msg hidden"></p>
+                    </div>
+
+                    <div class="pt-2 border-t border-gray-200 mt-4">
+                        <div class="flex items-center justify-between py-2">
+                            <span class="text-sm font-semibold text-gray-800">CMND/CCCD Cũ</span>
                             <label class="ios-switch">
                                 <input type="checkbox" id="toggleOldId" />
                                 <span class="ios-slider"></span>
                             </label>
                         </div>
 
-                        <!-- Khối giấy tờ cũ ẩn/hiện mượt -->
-                        <div id="oldIdSection" class="hidden bg-gray-50/80 border-t border-gray-100">
-                            <div class="native-cell-grid" style="border-top: none;">
-                                <div class="native-cell bg-transparent">
-                                    <label for="loaiGiayToCu" class="cell-label">Loại giấy tờ (cũ)</label>
-                                    <div class="cell-select-wrap form-select-wrapper">
-                                        <select id="loaiGiayToCu" class="cell-select form-select">
-                                            <option value="">Chọn loại</option>
-                                            <option value="Chứng minh Nhân dân (cũ)">CMND (cũ)</option>
-                                            <option value="Căn cước Công dân (cũ)">CCCD (cũ)</option>
-                                        </select>
-                                    </div>
-                                </div>
-                                <div class="native-cell bg-transparent">
-                                    <label for="soGiayToCu" class="cell-label">Số CMND/CCCD Cũ</label>
-                                    <input type="text" id="soGiayToCu" inputmode="numeric" class="cell-input form-input font-mono-num" placeholder="Nhập 9 số cũ" />
-                                </div>
-                            </div>
-                            <div class="native-cell-grid">
-                                <div class="native-cell bg-transparent">
-                                    <label for="ngayCapCu" class="cell-label">Ngày cấp cũ</label>
-                                    <input type="date" id="ngayCapCu" class="cell-input form-input font-mono-num" />
-                                </div>
-                                <div class="native-cell bg-transparent">
-                                    <label for="noiCapCu" class="cell-label">Nơi cấp cũ</label>
-                                    <input type="text" id="noiCapCu" list="issuePlacesList" class="cell-input form-input" placeholder="Nơi cấp cũ" />
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </section>
-
-                <!-- =========================================================
-                     NHÓM 2: ĐỊA CHỈ LIÊN LẠC (Cột S -> X)
-                     ========================================================= -->
-                <section id="secLienLac" class="space-y-1.5">
-                    <div class="app-section-label">
-                        <span>Địa Chỉ Liên Lạc</span>
-                    </div>
-
-                    <div class="native-group-card">
-                        <!-- Thành phố / Tỉnh (Cột S) & Phường / Xã (Cột T) -->
-                        <div class="native-cell-grid" style="border-top: none;">
-                            <div class="native-cell">
-                                <label for="thanhPhoTinh" class="cell-label">Thành phố / Tỉnh <span class="req">*</span></label>
-                                <div class="cell-select-wrap form-select-wrapper">
-                                    <select id="thanhPhoTinh" class="cell-select form-select">
-                                        <option value="">Chọn Tỉnh/TP</option>
-                                    </select>
-                                </div>
-                                <p class="field-error-msg hidden"></p>
-                            </div>
-                            <div class="native-cell">
-                                <label for="phuongXa" class="cell-label">Phường / Xã <span class="req">*</span></label>
-                                <input type="text" id="phuongXa" class="cell-input form-input" placeholder="P. Bến Nghé, Q.1" />
-                                <p class="field-error-msg hidden"></p>
-                            </div>
-                        </div>
-
-                        <!-- Số nhà, tên đường (Cột U) -->
-                        <div class="native-cell">
-                            <label for="soNhaTenDuong" class="cell-label">Số nhà, tên đường <span class="req">*</span></label>
-                            <input type="text" id="soNhaTenDuong" class="cell-input form-input" placeholder="43-45 Tú Xương" />
-                            <p class="field-error-msg hidden"></p>
-                        </div>
-
-                        <!-- Điện thoại di động (Cột W) & Email (Cột V) -->
-                        <div class="native-cell-grid">
-                            <div class="native-cell">
-                                <label for="dienThoai" class="cell-label">Điện thoại di động <span class="req">*</span></label>
-                                <input type="tel" id="dienThoai" inputmode="tel" maxlength="12" class="cell-input form-input font-mono-num" placeholder="0901234567" />
-                                <p class="field-error-msg hidden"></p>
-                            </div>
-                            <div class="native-cell">
-                                <label for="email" class="cell-label">Email <span class="req">*</span></label>
-                                <input type="email" id="email" inputmode="email" class="cell-input form-input" placeholder="ten@gmail.com" />
-                                <p class="field-error-msg hidden"></p>
-                            </div>
-                        </div>
-
-                        <!-- Đồng ý nhận thông tin từ Generali Việt Nam (Cột X) -->
-                        <div class="native-cell flex items-center justify-between">
-                            <div class="pr-3">
-                                <div class="text-[13px] font-bold text-gray-800">Nhận thông tin từ Generali VN <span class="text-[#C21B17]">*</span></div>
-                                <div class="text-[11px] text-gray-400">Đồng ý nhận thông báo & hướng dẫn hồ sơ</div>
-                            </div>
-                            <label class="ios-switch">
-                                <input type="checkbox" id="dongYNhanThongTin" checked />
-                                <span class="ios-slider"></span>
-                            </label>
-                        </div>
-                    </div>
-                </section>
-
-                <!-- =========================================================
-                     NHÓM 3: THÔNG TIN TÀI KHOẢN NGÂN HÀNG (Cột Y -> AE)
-                     ========================================================= -->
-                <section id="secNganHang" class="space-y-1.5">
-                    <div class="app-section-label">
-                        <span>Thông Tin Tài Khoản Ngân Hàng</span>
-                    </div>
-
-                    <div class="native-group-card">
-                        <!-- Thanh cuộn chạm nhanh Ngân hàng phổ biến (Bank Chips) + Dropdown đầy đủ -->
-                        <div class="native-cell">
-                            <div class="flex items-center justify-between mb-1.5">
-                                <label for="bankQuickPicker" class="cell-label mb-0">Chọn nhanh Ngân hàng</label>
-                                <div class="cell-select-wrap">
-                                    <select id="bankQuickPicker" class="text-[11px] font-bold text-[#C21B17] bg-transparent border-none outline-none appearance-none pr-1 cursor-pointer">
-                                        <option value="">Tất cả ngân hàng</option>
+                        <div id="oldIdSection" class="hidden pt-3 space-y-4">
+                            <div class="flat-field">
+                                <label for="loaiGiayToCu" class="flat-label">Loại giấy tờ (cũ)</label>
+                                <div class="flat-select-wrap">
+                                    <select id="loaiGiayToCu" class="flat-select form-select">
+                                        <option value="">-- Chọn --</option>
+                                        <option value="Chứng minh Nhân dân (cũ)">Chứng minh Nhân dân (cũ)</option>
+                                        <option value="Căn cước Công dân (cũ)">Căn cước Công dân (cũ)</option>
                                     </select>
                                 </div>
                             </div>
-                            <div class="bank-chip-rail" id="popularBankChips">
-                                <button type="button" class="bank-chip" onclick="quickSelectBank('VCB', this)">Vietcombank</button>
-                                <button type="button" class="bank-chip" onclick="quickSelectBank('TCB', this)">Techcombank</button>
-                                <button type="button" class="bank-chip" onclick="quickSelectBank('MBB', this)">MBBank</button>
-                                <button type="button" class="bank-chip" onclick="quickSelectBank('BIDV', this)">BIDV</button>
-                                <button type="button" class="bank-chip" onclick="quickSelectBank('CTG', this)">VietinBank</button>
-                                <button type="button" class="bank-chip" onclick="quickSelectBank('ACB', this)">ACB</button>
-                                <button type="button" class="bank-chip" onclick="quickSelectBank('VPB', this)">VPBank</button>
-                                <button type="button" class="bank-chip" onclick="quickSelectBank('VBA', this)">Agribank</button>
-                                <button type="button" class="bank-chip" onclick="quickSelectBank('STB', this)">Sacombank</button>
-                                <button type="button" class="bank-chip" onclick="quickSelectBank('TPB', this)">TPBank</button>
-                            </div>
-                        </div>
 
-                        <!-- Số tài khoản (Cột Y) & Tên chủ tài khoản (Cột Z) -->
-                        <div class="native-cell-grid">
-                            <div class="native-cell">
-                                <label for="soTaiKhoan" class="cell-label">Số tài khoản <span class="req">*</span></label>
-                                <input type="text" id="soTaiKhoan" inputmode="numeric" class="cell-input form-input font-mono-num text-[15.5px]" placeholder="Nhập số TK" />
-                                <p class="field-error-msg hidden"></p>
+                            <div class="flat-field">
+                                <label for="soGiayToCu" class="flat-label">CMND/CCCD Cũ</label>
+                                <input type="text" id="soGiayToCu" inputmode="numeric" class="flat-input form-input font-mono-num" />
                             </div>
-                            <div class="native-cell">
-                                <label for="tenTaiKhoan" class="cell-label">Tên tài khoản <span class="req">*</span></label>
-                                <input type="text" id="tenTaiKhoan" oninput="this.dataset.manualEdited='true'" class="cell-input form-input uppercase" placeholder="NGUYEN VAN AN" />
-                                <p class="field-error-msg hidden"></p>
-                            </div>
-                        </div>
 
-                        <!-- Mã số ngân hàng (Cột AA) & Tên ngân hàng (Cột AB) -->
-                        <div class="native-cell-grid">
-                            <div class="native-cell">
-                                <label for="maSoNganHang" class="cell-label">Mã số ngân hàng</label>
-                                <input type="text" id="maSoNganHang" class="cell-input form-input font-mono-num uppercase" placeholder="VCB (Tùy chọn)" />
-                                <p class="field-error-msg hidden"></p>
+                            <div class="flat-field">
+                                <label for="ngayCapCu" class="flat-label">Ngày cấp CMND/CCCD Cũ</label>
+                                <input type="date" id="ngayCapCu" class="flat-input form-input font-mono-num" />
                             </div>
-                            <div class="native-cell">
-                                <label for="tenNganHang" class="cell-label">Tên ngân hàng</label>
-                                <input type="text" id="tenNganHang" class="cell-input form-input truncate" placeholder="Tự động điền" />
-                            </div>
-                        </div>
 
-                        <!-- Mã số chi nhánh/PGD (Cột AC) & Tên Chi nhánh/PGD (Cột AD) -->
-                        <div class="native-cell-grid">
-                            <div class="native-cell">
-                                <label for="maSoChiNhanh" class="cell-label">Mã số CN/PGD</label>
-                                <input type="text" id="maSoChiNhanh" class="cell-input form-input font-mono-num" placeholder="Không bắt buộc" />
-                                <p class="field-error-msg hidden"></p>
+                            <div class="flat-field">
+                                <label for="noiCapCu" class="flat-label">Nơi cấp CMND/CCCD Cũ</label>
+                                <input type="text" id="noiCapCu" list="issuePlacesList" class="flat-input form-input" />
                             </div>
-                            <div class="native-cell">
-                                <label for="tenChiNhanh" class="cell-label">Tên Chi nhánh / PGD</label>
-                                <input type="text" id="tenChiNhanh" class="cell-input form-input" placeholder="CN TP.HCM" />
-                            </div>
-                        </div>
-
-                        <!-- Địa chỉ Chi nhánh (Cột AE) -->
-                        <div class="native-cell">
-                            <label for="diaChiChiNhanh" class="cell-label">Địa chỉ Chi nhánh</label>
-                            <input type="text" id="diaChiChiNhanh" class="cell-input form-input" placeholder="Địa chỉ chi nhánh ngân hàng (không bắt buộc)" />
                         </div>
                     </div>
                 </section>
 
-                <!-- =========================================================
-                     NHÓM 4: 2. CHỨNG TỪ ĐÍNH KÈM (Cột AF -> AG)
-                     ========================================================= -->
-                <section id="secDinhKem" class="space-y-1.5">
-                    <div class="app-section-label">
-                        <span>2. Chứng Từ Đính Kèm</span>
-                        <span class="text-[10px] font-medium normal-case text-gray-400">2 mặt CMND/CCCD</span>
+                <!-- 2. ĐỊA CHỈ LIÊN LẠC (DỮ LIỆU HÀNH CHÍNH MỚI SAU SÁP NHẬP) -->
+                <section id="secLienLac" class="flat-section">
+                    <h2 class="flat-section-title">Địa Chỉ Liên Lạc</h2>
+
+                    <div class="flat-field">
+                        <label for="thanhPhoTinh" class="flat-label">Thành phố / Tỉnh <span class="req">*</span></label>
+                        <div class="flat-select-wrap">
+                            <select id="thanhPhoTinh" class="flat-select form-select">
+                                <option value="">-- Chọn Tỉnh / Thành phố --</option>
+                            </select>
+                        </div>
+                        <p class="field-error-msg hidden"></p>
                     </div>
 
-                    <div class="native-group-card p-3 space-y-3">
-                        <div class="grid grid-cols-2 gap-2.5">
-                            <!-- KHUNG 1: MẶT TRƯỚC (Cột AF) -->
-                            <div id="cccdCardFront" class="id-card-slot flex flex-col justify-between space-y-2.5">
-                                <div class="flex items-center justify-between">
-                                    <span class="text-[11px] font-extrabold text-gray-800">Mặt trước <span class="text-[#C21B17]">*</span></span>
-                                    <span id="badgeStatusFront" class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-100 text-amber-700">Chưa có</span>
-                                </div>
+                    <div class="flat-field">
+                        <label for="phuongXa" class="flat-label">Phường / Xã <span class="req">*</span></label>
+                        <div class="flat-select-wrap">
+                            <select id="phuongXa" class="flat-select form-select">
+                                <option value="">-- Chọn Phường / Xã --</option>
+                            </select>
+                        </div>
+                        <p class="field-error-msg hidden"></p>
+                    </div>
 
-                                <div class="relative w-full aspect-[1.585/1] bg-white rounded-xl overflow-hidden flex items-center justify-center border border-gray-200/80">
-                                    <img id="imgPreviewFront" src="" alt="CCCD Mặt trước" class="hidden w-full h-full object-cover" />
-                                    <div id="emptyStateFront" class="text-center p-2">
-                                        <svg class="w-6 h-6 text-gray-300 mx-auto mb-1" fill="none" stroke="currentColor" stroke-width="1.6" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" d="M10 6H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V8a2 2 0 00-2-2h-5m-4 0V5a2 2 0 114 0v1m-4 0a2 2 0 104 0" />
-                                        </svg>
-                                        <span class="text-[10px] font-semibold text-gray-400 block">Mặt trước CCCD</span>
-                                    </div>
-                                    <button type="button" id="btnRemoveFront" onclick="window.cccdScanner.removeImage('front')" class="hidden absolute top-1.5 right-1.5 w-6 h-6 rounded-full bg-black/70 text-white text-xs flex items-center justify-center">
-                                        ✕
-                                    </button>
-                                </div>
+                    <div class="flat-field">
+                        <label for="soNhaTenDuong" class="flat-label">Số nhà, tên đường <span class="req">*</span></label>
+                        <input type="text" id="soNhaTenDuong" class="flat-input form-input" />
+                        <p class="field-error-msg hidden"></p>
+                    </div>
 
-                                <div class="grid grid-cols-2 gap-1.5">
-                                    <button type="button" onclick="window.cccdScanner.openCamera('front', false)" class="py-2 rounded-lg bg-[#C21B17] active:scale-95 text-white font-bold text-[11px] transition">
-                                        Chụp
-                                    </button>
-                                    <button type="button" onclick="document.getElementById('fileInputFront').click()" class="py-2 rounded-lg bg-gray-200/80 active:scale-95 text-gray-800 font-bold text-[11px] transition">
-                                        Up hình
-                                    </button>
-                                </div>
+                    <div class="flat-field">
+                        <label for="dienThoai" class="flat-label">Điện thoại di động <span class="req">*</span></label>
+                        <input type="tel" id="dienThoai" inputmode="tel" maxlength="12" class="flat-input form-input font-mono-num" />
+                        <p class="field-error-msg hidden"></p>
+                    </div>
+
+                    <div class="flat-field">
+                        <label for="email" class="flat-label">Email / Thư điện tử <span class="req">*</span></label>
+                        <input type="email" id="email" inputmode="email" class="flat-input form-input" />
+                        <p class="field-error-msg hidden"></p>
+                    </div>
+
+                    <div class="pt-2 border-t border-gray-200 mt-4 flex items-center justify-between gap-4">
+                        <span class="text-sm font-semibold text-gray-800">Đồng ý nhận thông tin từ Generali Việt Nam <span class="text-[#C21B17]">*</span></span>
+                        <label class="ios-switch">
+                            <input type="checkbox" id="dongYNhanThongTin" checked />
+                            <span class="ios-slider"></span>
+                        </label>
+                    </div>
+                </section>
+
+                <!-- 3. THÔNG TIN TÀI KHOẢN NGÂN HÀNG -->
+                <section id="secNganHang" class="flat-section">
+                    <h2 class="flat-section-title">Thông Tin Tài Khoản Ngân Hàng</h2>
+
+                    <div class="flat-field">
+                        <label for="bankQuickPicker" class="flat-label">Tên ngân hàng</label>
+                        <div class="flat-select-wrap">
+                            <select id="bankQuickPicker" class="flat-select form-select">
+                                <option value="">-- Chọn ngân hàng --</option>
+                            </select>
+                        </div>
+                        <input type="hidden" id="tenNganHang" />
+                    </div>
+
+                    <div class="flat-field">
+                        <label for="soTaiKhoan" class="flat-label">Số tài khoản <span class="req">*</span></label>
+                        <input type="text" id="soTaiKhoan" inputmode="numeric" class="flat-input form-input font-mono-num" />
+                        <p class="field-error-msg hidden"></p>
+                    </div>
+
+                    <div class="flat-field">
+                        <label for="tenTaiKhoan" class="flat-label">Tên tài khoản <span class="req">*</span></label>
+                        <input type="text" id="tenTaiKhoan" oninput="this.dataset.manualEdited='true'" class="flat-input form-input uppercase" />
+                        <p class="field-error-msg hidden"></p>
+                    </div>
+
+                    <div class="flat-field">
+                        <label for="maSoNganHang" class="flat-label">Mã số ngân hàng</label>
+                        <input type="text" id="maSoNganHang" class="flat-input form-input font-mono-num uppercase" />
+                        <p class="field-error-msg hidden"></p>
+                    </div>
+
+                    <div class="flat-field">
+                        <label for="tenChiNhanh" class="flat-label">Tên Chi nhánh / PGD</label>
+                        <input type="text" id="tenChiNhanh" class="flat-input form-input" />
+                    </div>
+
+                    <div class="flat-field">
+                        <label for="maSoChiNhanh" class="flat-label">Mã số chi nhánh / PGD</label>
+                        <input type="text" id="maSoChiNhanh" class="flat-input form-input font-mono-num" />
+                        <p class="field-error-msg hidden"></p>
+                    </div>
+
+                    <div class="flat-field">
+                        <label for="diaChiChiNhanh" class="flat-label">Địa chỉ Chi nhánh</label>
+                        <input type="text" id="diaChiChiNhanh" class="flat-input form-input" />
+                    </div>
+                </section>
+
+                <!-- 4. CHỨNG TỪ ĐÍNH KÈM -->
+                <section id="secDinhKem" class="flat-section">
+                    <h2 class="flat-section-title">2. Chứng Từ Đính Kèm</h2>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div id="cccdCardFront" class="id-card-slot space-y-3">
+                            <div class="flex items-center justify-between">
+                                <span class="text-sm font-bold text-gray-800">CMND/CCCD - Mặt trước <span class="text-[#C21B17]">*</span></span>
+                                <span id="badgeStatusFront" class="text-xs font-bold px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-700">Chưa có</span>
                             </div>
 
-                            <!-- KHUNG 2: MẶT SAU (Cột AG) -->
-                            <div id="cccdCardBack" class="id-card-slot flex flex-col justify-between space-y-2.5">
-                                <div class="flex items-center justify-between">
-                                    <span class="text-[11px] font-extrabold text-gray-800">Mặt sau <span class="text-[#C21B17]">*</span></span>
-                                    <span id="badgeStatusBack" class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-100 text-amber-700">Chưa có</span>
+                            <div class="relative w-full aspect-[1.585/1] bg-white rounded-lg overflow-hidden flex items-center justify-center border border-gray-200">
+                                <img id="imgPreviewFront" src="" alt="CCCD Mặt trước" class="hidden w-full h-full object-cover" />
+                                <div id="emptyStateFront" class="text-center p-3">
+                                    <span class="text-xs font-medium text-gray-400">Mặt trước</span>
                                 </div>
+                                <button type="button" id="btnRemoveFront" onclick="window.cccdScanner.removeImage('front')" class="hidden absolute top-2 right-2 w-7 h-7 rounded-full bg-black/70 text-white text-xs flex items-center justify-center">
+                                    ✕
+                                </button>
+                            </div>
 
-                                <div class="relative w-full aspect-[1.585/1] bg-white rounded-xl overflow-hidden flex items-center justify-center border border-gray-200/80">
-                                    <img id="imgPreviewBack" src="" alt="CCCD Mặt sau" class="hidden w-full h-full object-cover" />
-                                    <div id="emptyStateBack" class="text-center p-2">
-                                        <svg class="w-6 h-6 text-gray-300 mx-auto mb-1" fill="none" stroke="currentColor" stroke-width="1.6" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
-                                        </svg>
-                                        <span class="text-[10px] font-semibold text-gray-400 block">Mặt sau CCCD</span>
-                                    </div>
-                                    <button type="button" id="btnRemoveBack" onclick="window.cccdScanner.removeImage('back')" class="hidden absolute top-1.5 right-1.5 w-6 h-6 rounded-full bg-black/70 text-white text-xs flex items-center justify-center">
-                                        ✕
-                                    </button>
-                                </div>
+                            <div class="grid grid-cols-2 gap-2.5">
+                                <button type="button" onclick="window.cccdScanner.openCamera('front', false)" class="h-11 rounded-lg bg-[#C21B17] text-white font-bold text-xs">
+                                    Chụp ảnh
+                                </button>
+                                <button type="button" onclick="document.getElementById('fileInputFront').click()" class="h-11 rounded-lg bg-white border border-gray-300 text-gray-800 font-bold text-xs">
+                                    Up hình
+                                </button>
+                            </div>
+                        </div>
 
-                                <div class="grid grid-cols-2 gap-1.5">
-                                    <button type="button" onclick="window.cccdScanner.openCamera('back', false)" class="py-2 rounded-lg bg-[#C21B17] active:scale-95 text-white font-bold text-[11px] transition">
-                                        Chụp
-                                    </button>
-                                    <button type="button" onclick="document.getElementById('fileInputBack').click()" class="py-2 rounded-lg bg-gray-200/80 active:scale-95 text-gray-800 font-bold text-[11px] transition">
-                                        Up hình
-                                    </button>
+                        <div id="cccdCardBack" class="id-card-slot space-y-3">
+                            <div class="flex items-center justify-between">
+                                <span class="text-sm font-bold text-gray-800">CMND/CCCD - Mặt sau <span class="text-[#C21B17]">*</span></span>
+                                <span id="badgeStatusBack" class="text-xs font-bold px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-700">Chưa có</span>
+                            </div>
+
+                            <div class="relative w-full aspect-[1.585/1] bg-white rounded-lg overflow-hidden flex items-center justify-center border border-gray-200">
+                                <img id="imgPreviewBack" src="" alt="CCCD Mặt sau" class="hidden w-full h-full object-cover" />
+                                <div id="emptyStateBack" class="text-center p-3">
+                                    <span class="text-xs font-medium text-gray-400">Mặt sau</span>
                                 </div>
+                                <button type="button" id="btnRemoveBack" onclick="window.cccdScanner.removeImage('back')" class="hidden absolute top-2 right-2 w-7 h-7 rounded-full bg-black/70 text-white text-xs flex items-center justify-center">
+                                    ✕
+                                </button>
+                            </div>
+
+                            <div class="grid grid-cols-2 gap-2.5">
+                                <button type="button" onclick="window.cccdScanner.openCamera('back', false)" class="h-11 rounded-lg bg-[#C21B17] text-white font-bold text-xs">
+                                    Chụp ảnh
+                                </button>
+                                <button type="button" onclick="document.getElementById('fileInputBack').click()" class="h-11 rounded-lg bg-white border border-gray-300 text-gray-800 font-bold text-xs">
+                                    Up hình
+                                </button>
                             </div>
                         </div>
                     </div>
@@ -527,85 +392,60 @@
             </form>
         </main>
 
-        <!-- 3. THANH NÚT GỬI & RESET CỐ ĐỊNH ĐÁY MÀN HÌNH (STICKY NATIVE BOTTOM BAR) -->
-        <div id="bottomActionBar" class="native-bottom-bar">
-            <div class="flex items-center gap-2.5">
-                <button type="button" onclick="confirmResetForm()" class="shrink-0 h-[52px] px-4 rounded-[15px] bg-gray-100 active:bg-gray-200 text-gray-700 font-bold text-xs flex items-center justify-center gap-1.5 border border-gray-200/80 transition">
-                    <svg class="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                    </svg>
-                    <span>Làm mới</span>
-                </button>
-
-                <button type="button" id="btnSubmitForm" onclick="submitGenreForm()" class="native-submit-btn flex-1">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.4" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
-                    </svg>
-                    <span>Gửi Hồ Sơ Đăng Ký</span>
-                </button>
-            </div>
+        <!-- THANH GỬI HỒ SƠ PHẲNG ĐÁY MÀN HÌNH -->
+        <div id="bottomActionBar" class="flat-bottom-bar">
+            <button type="button" id="btnSubmitForm" onclick="submitGenreForm()" class="flat-submit-btn">
+                <span>Gửi Hồ Sơ Đăng Ký</span>
+            </button>
         </div>
 
-        <!-- =========================================================
-             MÀN HÌNH HOÀN TẤT (NATIVE RECEIPT SHEET)
-             ========================================================= -->
-        <section id="successScreen" class="hidden flex-1 px-4 py-8 flex flex-col items-center justify-center text-center">
-            <div class="w-16 h-16 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center mb-3 shadow-sm">
+        <!-- MÀN HÌNH HOÀN TẤT -->
+        <section id="successScreen" class="hidden flex-1 px-4 py-10 flex flex-col items-center justify-center text-center">
+            <div class="w-16 h-16 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center mb-3">
                 <svg class="w-9 h-9" fill="none" stroke="currentColor" stroke-width="2.6" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
                 </svg>
             </div>
             <h2 class="text-lg font-extrabold text-gray-900">Đã Gửi Hồ Sơ Thành Công</h2>
-            <p class="text-xs text-gray-500 mt-1">
-                Dữ liệu và 2 mặt ảnh CCCD đã được đồng bộ về danh sách tổng hợp GENRE.
-            </p>
 
-            <div class="w-full native-group-card p-4 mt-5 text-left space-y-2.5 text-xs">
+            <div class="w-full flat-section mt-5 text-left space-y-3 text-sm">
                 <div class="flex justify-between">
-                    <span class="text-gray-400 font-medium">Họ và tên</span>
+                    <span class="text-gray-500">Họ và tên</span>
                     <span id="successApplicantName" class="font-bold text-gray-900">---</span>
                 </div>
-                <div class="flex justify-between border-t border-gray-100 pt-2">
-                    <span class="text-gray-400 font-medium">Số CMND/CCCD</span>
+                <div class="flex justify-between border-t border-gray-100 pt-2.5">
+                    <span class="text-gray-500">CMND/CCCD</span>
                     <span id="successApplicantCCCD" class="font-mono-num font-bold text-gray-800">---</span>
                 </div>
-                <div class="flex justify-between border-t border-gray-100 pt-2">
-                    <span class="text-gray-400 font-medium">Điện thoại</span>
+                <div class="flex justify-between border-t border-gray-100 pt-2.5">
+                    <span class="text-gray-500">Điện thoại</span>
                     <span id="successApplicantPhone" class="font-mono-num font-bold text-gray-800">---</span>
-                </div>
-                <div class="flex justify-between border-t border-gray-100 pt-2">
-                    <span class="text-gray-400 font-medium">Chứng từ CCCD</span>
-                    <span class="font-bold text-emerald-600">✓ Đã tải lên 2 mặt</span>
                 </div>
             </div>
 
             <div id="successSyncNote" class="w-full"></div>
 
-            <div class="w-full space-y-2.5 mt-6">
-                <button type="button" onclick="downloadLastSubmissionCSV()" class="w-full bg-white active:bg-gray-50 text-gray-800 font-bold text-xs py-3.5 px-4 rounded-2xl border border-gray-200 shadow-sm">
-                    Tải Bản Sao Hồ Sơ (Excel / CSV)
+            <div class="w-full space-y-3 mt-6">
+                <button type="button" onclick="downloadLastSubmissionCSV()" class="w-full h-12 bg-white text-gray-800 font-bold text-sm rounded-lg border border-gray-300">
+                    Tải Bản Sao Hồ Sơ (CSV)
                 </button>
 
-                <button type="button" onclick="resetForNewRegistration()" class="native-submit-btn">
-                    + Tạo Hồ Sơ Đăng Ký Mới
+                <button type="button" onclick="resetForNewRegistration()" class="flat-submit-btn">
+                    Đăng Ký Hồ Sơ Mới
                 </button>
             </div>
         </section>
     </div>
 
-    <!-- =========================================================
-         MODAL CAMERA CHỤP SCAN CCCD (FULLSCREEN NATIVE CAMERA)
-         ========================================================= -->
+    <!-- MODAL CAMERA CHỤP SCAN CCCD -->
     <div id="scannerModal" class="hidden fixed inset-0 z-50 bg-black flex flex-col justify-between">
-        <div class="px-4 pt-4 pb-3 bg-gradient-to-b from-black/90 to-transparent text-white z-20 flex items-center justify-between">
+        <div class="px-4 pt-4 pb-3 bg-black/90 text-white z-20 flex items-center justify-between">
             <div>
-                <div class="mb-1">
-                    <span id="scannerSideStepPill" class="text-[11px] font-bold px-3 py-1 rounded-full bg-[#C21B17] text-white shadow">
-                        MẶT TRƯỚC (1/2)
-                    </span>
-                </div>
-                <h3 id="scannerModalTitle" class="text-sm font-bold">Scan CCCD - Mặt Trước</h3>
-                <p id="scannerModalSubtitle" class="text-[11px] text-gray-300 mt-0.5">Tự động trích xuất thông tin & đính kèm ảnh</p>
+                <span id="scannerSideStepPill" class="text-[11px] font-bold px-2.5 py-0.5 rounded bg-[#C21B17] text-white">
+                    MẶT TRƯỚC (1/2)
+                </span>
+                <h3 id="scannerModalTitle" class="text-sm font-bold mt-1">Scan CCCD - Mặt Trước</h3>
+                <p id="scannerModalSubtitle" class="hidden"></p>
             </div>
             <button type="button" onclick="window.cccdScanner.closeModal()" class="w-9 h-9 rounded-full bg-white/15 flex items-center justify-center text-white text-sm font-bold">
                 ✕
@@ -613,15 +453,10 @@
         </div>
 
         <div class="space-y-1.5 px-4 z-20">
-            <div id="qrDetectBanner" class="hidden mx-auto px-3.5 py-1.5 rounded-full bg-emerald-600 text-white text-xs font-semibold shadow-lg text-center">
-                ✓ Đã nhận diện mã QR CCCD!
-            </div>
-            <div id="extractLoadingBanner" class="hidden mx-auto px-3.5 py-1.5 rounded-full bg-white/20 backdrop-blur text-white text-xs font-medium text-center">
-                Đang trích xuất thông tin...
-            </div>
+            <div id="qrDetectBanner" class="hidden mx-auto px-3.5 py-1.5 rounded-lg bg-emerald-600 text-white text-xs font-semibold text-center"></div>
+            <div id="extractLoadingBanner" class="hidden mx-auto px-3.5 py-1.5 rounded-lg bg-white/20 text-white text-xs font-medium text-center"></div>
         </div>
 
-        <!-- VÙNG 1: KHUNG NGẮM VIDEO CAMERA -->
         <div id="scannerVideoWrap" class="relative flex-1 flex items-center justify-center overflow-hidden">
             <video id="scannerVideo" playsinline autoplay muted class="absolute inset-0 w-full h-full object-cover"></video>
 
@@ -631,25 +466,18 @@
                 <div class="corner-guide corner-bl"></div>
                 <div class="corner-guide corner-br"></div>
                 <div class="laser-scan-line"></div>
-                <div class="absolute bottom-2 inset-x-0 text-center">
-                    <span class="text-[10px] font-semibold bg-black/65 text-white/95 px-3 py-1 rounded-full">
-                        Canh 4 góc thẻ CCCD khớp khung viền đỏ
-                    </span>
-                </div>
             </div>
         </div>
 
-        <!-- VÙNG 2: KHUNG XEM TRƯỚC & LÀM NÉT ẢNH SCAN -->
         <div id="scannerPreviewWrap" class="hidden flex-1 flex flex-col items-center justify-center p-4 bg-gray-950 overflow-hidden">
-            <div class="w-full max-w-md bg-gray-900 rounded-2xl p-3 border border-gray-800 flex items-center justify-center">
-                <canvas id="scannerPreviewCanvas" class="max-w-full max-h-[50vh] rounded-xl object-contain"></canvas>
+            <div class="w-full max-w-md bg-gray-900 rounded-xl p-3 border border-gray-800 flex items-center justify-center">
+                <canvas id="scannerPreviewCanvas" class="max-w-full max-h-[54vh] rounded-lg object-contain"></canvas>
             </div>
         </div>
 
-        <!-- ĐIỀU KHIỂN CAMERA -->
         <div id="scannerLiveControls" class="px-6 py-5 bg-black/90 border-t border-white/10 z-20">
             <div class="max-w-md mx-auto flex items-center justify-between">
-                <button type="button" onclick="window.cccdScanner.closeModal(); document.getElementById(window.cccdScanner.currentSide === 'back' ? 'fileInputBack' : 'fileInputFront').click()" class="flex flex-col items-center gap-1 text-gray-300 text-[11px] font-semibold">
+                <button type="button" onclick="window.cccdScanner.closeModal(); document.getElementById(window.cccdScanner.currentSide === 'back' ? 'fileInputBack' : 'fileInputFront').click()" class="flex flex-col items-center gap-1 text-gray-300 text-xs font-semibold">
                     <span class="w-11 h-11 rounded-full bg-white/15 flex items-center justify-center">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
@@ -662,7 +490,7 @@
                     <span class="shutter-btn-inner"></span>
                 </button>
 
-                <button type="button" onclick="window.cccdScanner.switchCamera()" class="flex flex-col items-center gap-1 text-gray-300 text-[11px] font-semibold">
+                <button type="button" onclick="window.cccdScanner.switchCamera()" class="flex flex-col items-center gap-1 text-gray-300 text-xs font-semibold">
                     <span class="w-11 h-11 rounded-full bg-white/15 flex items-center justify-center">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
@@ -673,73 +501,31 @@
             </div>
         </div>
 
-        <!-- ĐIỀU KHIỂN XEM TRƯỚC -->
         <div id="scannerEditControls" class="hidden px-4 py-4 bg-gray-900 border-t border-gray-800 z-20">
             <div class="max-w-md mx-auto space-y-3">
                 <div class="grid grid-cols-2 gap-2.5">
-                    <button type="button" onclick="window.cccdScanner.rotateImage()" class="bg-gray-800 text-gray-200 text-xs font-bold py-2.5 px-3 rounded-xl">
-                        ↻ Xoay ảnh 90°
+                    <button type="button" onclick="window.cccdScanner.rotateImage()" class="bg-gray-800 text-gray-200 text-xs font-bold py-3 px-3 rounded-lg">
+                        ↻ Xoay 90°
                     </button>
-                    <button type="button" id="btnToggleEnhance" onclick="window.cccdScanner.toggleEnhanceScan()" class="bg-gray-800 text-gray-200 text-xs font-bold py-2.5 px-3 rounded-xl">
-                        ⚡ Bản Scan Rõ Nét
+                    <button type="button" id="btnToggleEnhance" onclick="window.cccdScanner.toggleEnhanceScan()" class="bg-gray-800 text-gray-200 text-xs font-bold py-3 px-3 rounded-lg">
+                        ⚡ Làm nét
                     </button>
                 </div>
 
                 <div class="grid grid-cols-12 gap-2.5">
-                    <button type="button" onclick="window.cccdScanner.retakePhoto()" class="col-span-5 bg-gray-700 text-white text-xs font-bold py-3.5 rounded-xl">
+                    <button type="button" onclick="window.cccdScanner.retakePhoto()" class="col-span-5 bg-gray-700 text-white text-xs font-bold py-3.5 rounded-lg">
                         Chụp lại
                     </button>
-                    <button type="button" onclick="window.cccdScanner.confirmImage()" class="col-span-7 bg-[#C21B17] text-white text-xs font-extrabold py-3.5 rounded-xl shadow-lg">
-                        ✓ Lưu & Đính Kèm
+                    <button type="button" onclick="window.cccdScanner.confirmImage()" class="col-span-7 bg-[#C21B17] text-white text-xs font-extrabold py-3.5 rounded-lg">
+                        Lưu & Đính kèm
                     </button>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- =========================================================
-         BOTTOM SHEET CÀI ĐẶT GOOGLE SHEETS & QR CODE
-         ========================================================= -->
-    <div id="settingsModal" class="hidden fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-end sm:items-center justify-center">
-        <div class="bg-white w-full max-w-[440px] rounded-t-3xl sm:rounded-3xl shadow-2xl overflow-hidden">
-            <div class="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
-                <h3 class="text-sm font-extrabold text-gray-900">Kết Nối Google Sheet & Mã QR</h3>
-                <button type="button" onclick="toggleSettingsModal(false)" class="w-7 h-7 rounded-full bg-gray-100 text-gray-600 font-bold text-xs flex items-center justify-center">✕</button>
-            </div>
-
-            <div class="p-5 space-y-4 text-xs">
-                <div>
-                    <span class="block font-bold text-gray-500 uppercase text-[10px] tracking-wider mb-1">Bảng tính Google Sheets</span>
-                    <a href="https://docs.google.com/spreadsheets/d/1MRgOcAVzDqfZy4VbH2Xt_noqCaGX6HWBoFZY5ydnAWY/edit?usp=sharing" target="_blank" class="text-[#C21B17] font-bold underline break-all">
-                        DANH SÁCH TỔNG HỢP ĐĂNG KÝ HỒ SƠ GENRE ↗
-                    </a>
-                </div>
-
-                <div>
-                    <label for="gasWebhookUrlInput" class="block font-bold text-gray-700 mb-1.5">URL Web App Google Apps Script</label>
-                    <input type="url" id="gasWebhookUrlInput" class="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 text-xs font-medium focus:outline-none focus:border-[#C21B17]" placeholder="https://script.google.com/macros/s/.../exec" />
-                </div>
-
-                <div class="border-t border-gray-100 pt-3">
-                    <span class="block font-bold text-gray-700 mb-1.5">Link & QR mở Form trên điện thoại</span>
-                    <input type="text" id="shareFormUrlInput" readonly class="w-full px-3.5 py-2 rounded-xl bg-gray-50 border border-gray-200 text-gray-500 text-xs" />
-                    <img id="shareFormQrImg" src="" alt="QR Code Web Form" class="hidden w-32 h-32 mx-auto mt-2.5 border rounded-2xl p-1.5" />
-                </div>
-
-                <div class="grid grid-cols-2 gap-2.5 pt-2">
-                    <button type="button" onclick="toggleSettingsModal(false)" class="py-3 rounded-xl bg-gray-100 text-gray-700 font-bold">
-                        Đóng
-                    </button>
-                    <button type="button" onclick="saveGasConfig()" class="py-3 rounded-xl bg-[#C21B17] text-white font-extrabold">
-                        Lưu Kết Nối
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Scripts -->
     <script src="js/data.js"></script>
+    <script src="js/vn-admin-2025.js"></script>
     <script src="js/vn-cccd-ocr.js"></script>
     <script src="js/scanner.js"></script>
     <script src="js/app.js"></script>

@@ -1,124 +1,222 @@
 /**
- * Dữ liệu danh mục Tỉnh/Thành phố Việt Nam, Mã tỉnh CCCD Bộ Công An (001-096) & Danh sách Ngân hàng
- * Phục vụ Web Form Đăng Ký Hồ Sơ GENRE - Generali Việt Nam
+ * Dữ liệu danh mục 34 Tỉnh/Thành phố sau sáp nhập (Nghị quyết 202/2025/QH15),
+ * Ánh xạ 63 tỉnh cũ -> 34 tỉnh/thành mới, Mã tỉnh CCCD Bộ Công An & Danh sách Ngân hàng
  */
 
 const GENRE_DATA = {
-    // Danh sách 63 Tỉnh / Thành phố chuẩn trên Form
+    // Danh sách 34 Tỉnh / Thành phố chính thức sau sáp nhập
     provinces: [
-        "TP. Hồ Chí Minh", "Hà Nội", "Đà Nẵng", "Hải Phòng", "Cần Thơ",
-        "An Giang", "Bà Rịa - Vũng Tàu", "Bắc Giang", "Bắc Kạn", "Bạc Liêu",
-        "Bắc Ninh", "Bến Tre", "Bình Định", "Bình Dương", "Bình Phước",
-        "Bình Thuận", "Cà Mau", "Cao Bằng", "Đắk Lắk", "Đắk Nông",
-        "Điện Biên", "Đồng Nai", "Đồng Tháp", "Gia Lai", "Hà Giang",
-        "Hà Nam", "Hà Tĩnh", "Hải Dương", "Hậu Giang", "Hòa Bình",
-        "Hưng Yên", "Khánh Hòa", "Kiên Giang", "Kon Tum", "Lai Châu",
-        "Lâm Đồng", "Lạng Sơn", "Lào Cai", "Long An", "Nam Định",
-        "Nghệ An", "Ninh Bình", "Ninh Thuận", "Phú Thọ", "Phú Yên",
-        "Quảng Bình", "Quảng Nam", "Quảng Ngãi", "Quảng Ninh", "Quảng Trị",
-        "Sóc Trăng", "Sơn La", "Tây Ninh", "Thái Bình", "Thái Nguyên",
-        "Thanh Hóa", "Thừa Thiên Huế", "Tiền Giang", "Trà Vinh", "Tuyên Quang",
-        "Vĩnh Long", "Vĩnh Phúc", "Yên Bái"
+        "Thành phố Hồ Chí Minh",
+        "Thành phố Hà Nội",
+        "Thành phố Đà Nẵng",
+        "Thành phố Hải Phòng",
+        "Thành phố Cần Thơ",
+        "Thành phố Huế",
+        "Tỉnh An Giang",
+        "Tỉnh Bắc Ninh",
+        "Tỉnh Cà Mau",
+        "Tỉnh Cao Bằng",
+        "Tỉnh Đắk Lắk",
+        "Tỉnh Điện Biên",
+        "Tỉnh Đồng Nai",
+        "Tỉnh Đồng Tháp",
+        "Tỉnh Gia Lai",
+        "Tỉnh Hà Tĩnh",
+        "Tỉnh Hưng Yên",
+        "Tỉnh Khánh Hòa",
+        "Tỉnh Lai Châu",
+        "Tỉnh Lâm Đồng",
+        "Tỉnh Lạng Sơn",
+        "Tỉnh Lào Cai",
+        "Tỉnh Nghệ An",
+        "Tỉnh Ninh Bình",
+        "Tỉnh Phú Thọ",
+        "Tỉnh Quảng Ngãi",
+        "Tỉnh Quảng Ninh",
+        "Tỉnh Quảng Trị",
+        "Tỉnh Sơn La",
+        "Tỉnh Tây Ninh",
+        "Tỉnh Thái Nguyên",
+        "Tỉnh Thanh Hóa",
+        "Tỉnh Tuyên Quang",
+        "Tỉnh Vĩnh Long"
     ],
 
-    // Bảng mã 63 Tỉnh/Thành phố chính thức trên 3 chữ số đầu của thẻ CCCD / Thẻ Căn cước (Thông tư 07/2016/TT-BCA)
+    // Bảng mã 3 chữ số đầu CCCD (001-096) ánh xạ thẳng sang 34 Tỉnh/Thành phố mới sau sáp nhập
     cccdProvinceCodes: {
-        "001": "Hà Nội",
-        "002": "Hà Giang",
-        "004": "Cao Bằng",
-        "006": "Bắc Kạn",
-        "008": "Tuyên Quang",
-        "010": "Lào Cai",
-        "011": "Điện Biên",
-        "012": "Lai Châu",
-        "014": "Sơn La",
-        "015": "Yên Bái",
-        "017": "Hòa Bình",
-        "019": "Thái Nguyên",
-        "020": "Lạng Sơn",
-        "022": "Quảng Ninh",
-        "024": "Bắc Giang",
-        "025": "Phú Thọ",
-        "026": "Vĩnh Phúc",
-        "027": "Bắc Ninh",
-        "030": "Hải Dương",
-        "031": "Hải Phòng",
-        "033": "Hưng Yên",
-        "034": "Thái Bình",
-        "035": "Hà Nam",
-        "036": "Nam Định",
-        "037": "Ninh Bình",
-        "038": "Thanh Hóa",
-        "040": "Nghệ An",
-        "042": "Hà Tĩnh",
-        "044": "Quảng Bình",
-        "045": "Quảng Trị",
-        "046": "Thừa Thiên Huế",
-        "048": "Đà Nẵng",
-        "049": "Quảng Nam",
-        "051": "Quảng Ngãi",
-        "052": "Bình Định",
-        "054": "Phú Yên",
-        "056": "Khánh Hòa",
-        "058": "Ninh Thuận",
-        "060": "Bình Thuận",
-        "062": "Kon Tum",
-        "064": "Gia Lai",
-        "066": "Đắk Lắk",
-        "067": "Đắk Nông",
-        "068": "Lâm Đồng",
-        "070": "Bình Phước",
-        "072": "Tây Ninh",
-        "074": "Bình Dương",
-        "075": "Đồng Nai",
-        "077": "Bà Rịa - Vũng Tàu",
-        "079": "TP. Hồ Chí Minh",
-        "080": "Long An",
-        "082": "Tiền Giang",
-        "083": "Bến Tre",
-        "084": "Trà Vinh",
-        "086": "Vĩnh Long",
-        "087": "Đồng Tháp",
-        "089": "An Giang",
-        "091": "Kiên Giang",
-        "092": "Cần Thơ",
-        "093": "Hậu Giang",
-        "094": "Sóc Trăng",
-        "095": "Bạc Liêu",
-        "096": "Cà Mau"
+        "001": "Thành phố Hà Nội",
+        "002": "Tỉnh Tuyên Quang",       // Hà Giang -> Tuyên Quang
+        "004": "Tỉnh Cao Bằng",
+        "006": "Tỉnh Thái Nguyên",       // Bắc Kạn -> Thái Nguyên
+        "008": "Tỉnh Tuyên Quang",
+        "010": "Tỉnh Lào Cai",
+        "011": "Tỉnh Điện Biên",
+        "012": "Tỉnh Lai Châu",
+        "014": "Tỉnh Sơn La",
+        "015": "Tỉnh Lào Cai",           // Yên Bái -> Lào Cai
+        "017": "Tỉnh Phú Thọ",           // Hòa Bình -> Phú Thọ
+        "019": "Tỉnh Thái Nguyên",
+        "020": "Tỉnh Lạng Sơn",
+        "022": "Tỉnh Quảng Ninh",
+        "024": "Tỉnh Bắc Ninh",          // Bắc Giang -> Bắc Ninh
+        "025": "Tỉnh Phú Thọ",
+        "026": "Tỉnh Phú Thọ",           // Vĩnh Phúc -> Phú Thọ
+        "027": "Tỉnh Bắc Ninh",
+        "030": "Thành phố Hải Phòng",    // Hải Dương -> Hải Phòng
+        "031": "Thành phố Hải Phòng",
+        "033": "Tỉnh Hưng Yên",
+        "034": "Tỉnh Hưng Yên",          // Thái Bình -> Hưng Yên
+        "035": "Tỉnh Ninh Bình",         // Hà Nam -> Ninh Bình
+        "036": "Tỉnh Ninh Bình",         // Nam Định -> Ninh Bình
+        "037": "Tỉnh Ninh Bình",
+        "038": "Tỉnh Thanh Hóa",
+        "040": "Tỉnh Nghệ An",
+        "042": "Tỉnh Hà Tĩnh",
+        "044": "Tỉnh Quảng Trị",         // Quảng Bình -> Quảng Trị
+        "045": "Tỉnh Quảng Trị",
+        "046": "Thành phố Huế",
+        "048": "Thành phố Đà Nẵng",
+        "049": "Thành phố Đà Nẵng",      // Quảng Nam -> Đà Nẵng
+        "051": "Tỉnh Quảng Ngãi",
+        "052": "Tỉnh Gia Lai",           // Bình Định -> Gia Lai
+        "054": "Tỉnh Đắk Lắk",           // Phú Yên -> Đắk Lắk
+        "056": "Tỉnh Khánh Hòa",
+        "058": "Tỉnh Khánh Hòa",         // Ninh Thuận -> Khánh Hòa
+        "060": "Tỉnh Lâm Đồng",          // Bình Thuận -> Lâm Đồng
+        "062": "Tỉnh Quảng Ngãi",        // Kon Tum -> Quảng Ngãi
+        "064": "Tỉnh Gia Lai",
+        "066": "Tỉnh Đắk Lắk",
+        "067": "Tỉnh Lâm Đồng",          // Đắk Nông -> Lâm Đồng
+        "068": "Tỉnh Lâm Đồng",
+        "070": "Tỉnh Đồng Nai",          // Bình Phước -> Đồng Nai
+        "072": "Tỉnh Tây Ninh",
+        "074": "Thành phố Hồ Chí Minh",  // Bình Dương -> TP.HCM
+        "075": "Tỉnh Đồng Nai",
+        "077": "Thành phố Hồ Chí Minh",  // Bà Rịa - Vũng Tàu -> TP.HCM
+        "079": "Thành phố Hồ Chí Minh",
+        "080": "Tỉnh Tây Ninh",          // Long An -> Tây Ninh
+        "082": "Tỉnh Đồng Tháp",         // Tiền Giang -> Đồng Tháp
+        "083": "Tỉnh Vĩnh Long",         // Bến Tre -> Vĩnh Long
+        "084": "Tỉnh Vĩnh Long",         // Trà Vinh -> Vĩnh Long
+        "086": "Tỉnh Vĩnh Long",
+        "087": "Tỉnh Đồng Tháp",
+        "089": "Tỉnh An Giang",
+        "091": "Tỉnh An Giang",          // Kiên Giang -> An Giang
+        "092": "Thành phố Cần Thơ",
+        "093": "Thành phố Cần Thơ",      // Hậu Giang -> Cần Thơ
+        "094": "Thành phố Cần Thơ",      // Sóc Trăng -> Cần Thơ
+        "095": "Tỉnh Cà Mau",            // Bạc Liêu -> Cà Mau
+        "096": "Tỉnh Cà Mau"
     },
 
-    // Bảng từ đồng nghĩa / viết tắt Tỉnh Thành phục vụ nhận diện OCR tiếng Việt
+    // Ánh xạ toàn bộ tên 63 tỉnh/thành cũ & viết tắt sang đúng 34 Tỉnh/Thành phố mới sau sáp nhập
     provinceAliases: {
-        "hcm": "TP. Hồ Chí Minh",
-        "tphcm": "TP. Hồ Chí Minh",
-        "tp ho chi minh": "TP. Hồ Chí Minh",
-        "ho chi minh": "TP. Hồ Chí Minh",
-        "sai gon": "TP. Hồ Chí Minh",
-        "hn": "Hà Nội",
-        "ha noi": "Hà Nội",
-        "ha tay": "Hà Nội",
-        "ba ria vung tau": "Bà Rịa - Vũng Tàu",
-        "br vt": "Bà Rịa - Vũng Tàu",
-        "brvt": "Bà Rịa - Vũng Tàu",
-        "vung tau": "Bà Rịa - Vũng Tàu",
-        "thua thien hue": "Thừa Thiên Huế",
-        "tt hue": "Thừa Thiên Huế",
-        "tp hue": "Thừa Thiên Huế",
-        "hue": "Thừa Thiên Huế",
-        "dak lak": "Đắk Lắk",
-        "dac lac": "Đắk Lắk",
-        "daklak": "Đắk Lắk",
-        "dak nong": "Đắk Nông",
-        "dac nong": "Đắk Nông",
-        "bac can": "Bắc Kạn",
-        "bac kan": "Bắc Kạn",
-        "thanh hoa": "Thanh Hóa",
-        "khanh hoa": "Khánh Hòa",
-        "hoa binh": "Hòa Bình"
+        "hcm": "Thành phố Hồ Chí Minh",
+        "tphcm": "Thành phố Hồ Chí Minh",
+        "tp ho chi minh": "Thành phố Hồ Chí Minh",
+        "ho chi minh": "Thành phố Hồ Chí Minh",
+        "sai gon": "Thành phố Hồ Chí Minh",
+        "binh duong": "Thành phố Hồ Chí Minh",
+        "ba ria vung tau": "Thành phố Hồ Chí Minh",
+        "br vt": "Thành phố Hồ Chí Minh",
+        "brvt": "Thành phố Hồ Chí Minh",
+        "vung tau": "Thành phố Hồ Chí Minh",
+
+        "hn": "Thành phố Hà Nội",
+        "ha noi": "Thành phố Hà Nội",
+        "ha tay": "Thành phố Hà Nội",
+
+        "hai phong": "Thành phố Hải Phòng",
+        "hai duong": "Thành phố Hải Phòng",
+
+        "da nang": "Thành phố Đà Nẵng",
+        "quang nam": "Thành phố Đà Nẵng",
+
+        "hue": "Thành phố Huế",
+        "tp hue": "Thành phố Huế",
+        "thua thien hue": "Thành phố Huế",
+        "tt hue": "Thành phố Huế",
+
+        "can tho": "Thành phố Cần Thơ",
+        "hau giang": "Thành phố Cần Thơ",
+        "soc trang": "Thành phố Cần Thơ",
+
+        "ha giang": "Tỉnh Tuyên Quang",
+        "tuyen quang": "Tỉnh Tuyên Quang",
+
+        "lao cai": "Tỉnh Lào Cai",
+        "yen bai": "Tỉnh Lào Cai",
+
+        "thai nguyen": "Tỉnh Thái Nguyên",
+        "bac kan": "Tỉnh Thái Nguyên",
+        "bac can": "Tỉnh Thái Nguyên",
+
+        "phu tho": "Tỉnh Phú Thọ",
+        "vinh phuc": "Tỉnh Phú Thọ",
+        "hoa binh": "Tỉnh Phú Thọ",
+
+        "bac ninh": "Tỉnh Bắc Ninh",
+        "bac giang": "Tỉnh Bắc Ninh",
+
+        "hung yen": "Tỉnh Hưng Yên",
+        "thai binh": "Tỉnh Hưng Yên",
+
+        "ninh binh": "Tỉnh Ninh Bình",
+        "ha nam": "Tỉnh Ninh Bình",
+        "nam dinh": "Tỉnh Ninh Bình",
+
+        "quang tri": "Tỉnh Quảng Trị",
+        "quang binh": "Tỉnh Quảng Trị",
+
+        "quang ngai": "Tỉnh Quảng Ngãi",
+        "kon tum": "Tỉnh Quảng Ngãi",
+
+        "gia lai": "Tỉnh Gia Lai",
+        "binh dinh": "Tỉnh Gia Lai",
+
+        "dak lak": "Tỉnh Đắk Lắk",
+        "dac lac": "Tỉnh Đắk Lắk",
+        "daklak": "Tỉnh Đắk Lắk",
+        "phu yen": "Tỉnh Đắk Lắk",
+
+        "khanh hoa": "Tỉnh Khánh Hòa",
+        "ninh thuan": "Tỉnh Khánh Hòa",
+
+        "lam dong": "Tỉnh Lâm Đồng",
+        "dak nong": "Tỉnh Lâm Đồng",
+        "dac nong": "Tỉnh Lâm Đồng",
+        "binh thuan": "Tỉnh Lâm Đồng",
+
+        "dong nai": "Tỉnh Đồng Nai",
+        "binh phuoc": "Tỉnh Đồng Nai",
+
+        "tay ninh": "Tỉnh Tây Ninh",
+        "long an": "Tỉnh Tây Ninh",
+
+        "dong thap": "Tỉnh Đồng Tháp",
+        "tien giang": "Tỉnh Đồng Tháp",
+
+        "vinh long": "Tỉnh Vĩnh Long",
+        "ben tre": "Tỉnh Vĩnh Long",
+        "tra vinh": "Tỉnh Vĩnh Long",
+
+        "an giang": "Tỉnh An Giang",
+        "kien giang": "Tỉnh An Giang",
+
+        "ca mau": "Tỉnh Cà Mau",
+        "bac lieu": "Tỉnh Cà Mau",
+
+        "cao bang": "Tỉnh Cao Bằng",
+        "dien bien": "Tỉnh Điện Biên",
+        "lai chau": "Tỉnh Lai Châu",
+        "son la": "Tỉnh Sơn La",
+        "lang son": "Tỉnh Lạng Sơn",
+        "quang ninh": "Tỉnh Quảng Ninh",
+        "thanh hoa": "Tỉnh Thanh Hóa",
+        "nghe an": "Tỉnh Nghệ An",
+        "ha tinh": "Tỉnh Hà Tĩnh"
     },
 
-    // Từ điển Họ phổ biến của người Việt (hỗ trợ khôi phục dấu tiếng Việt khi OCR bị mờ dấu)
     commonVietnameseSurnames: {
         "NGUYEN": "NGUYỄN",
         "NGUYÊN": "NGUYỄN",
@@ -149,16 +247,13 @@ const GENRE_DATA = {
         "TRIEU": "TRIỆU"
     },
 
-    // Danh sách nơi cấp CCCD/CMND phổ biến để gợi ý nhanh
     issuePlaces: [
         "Cục Cảnh sát quản lý hành chính về trật tự xã hội",
-        "Cục Cảnh sát QLHC về TTXH",
-        "Cục Cảnh sát ĐKQL cư trú và DLQG về dân cư",
         "Bộ Công An",
+        "Cục Cảnh sát ĐKQL cư trú và DLQG về dân cư",
         "Cục Quản lý xuất nhập cảnh"
     ],
 
-    // Danh sách Ngân hàng phổ biến tại Việt Nam (Kèm mã ngân hàng gợi ý)
     banks: [
         { code: "VCB", citad: "01203001", shortName: "Vietcombank", fullName: "Ngân hàng TMCP Ngoại thương Việt Nam (Vietcombank)" },
         { code: "TCB", citad: "01310001", shortName: "Techcombank", fullName: "Ngân hàng TMCP Kỹ thương Việt Nam (Techcombank)" },

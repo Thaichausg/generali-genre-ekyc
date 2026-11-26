@@ -1058,13 +1058,14 @@ class VNCCCDRecognizer {
 
     matchProvinceInString(rawStr) {
         if (!rawStr || typeof GENRE_DATA === 'undefined') return '';
+        const stripAdminPrefix = (s) => s.replace(/^(?:tinh|thanh pho|tp)\s+/, '').trim();
         const normInput = this.removeAccentsLower(rawStr);
         if (!normInput) return '';
 
-        // 1. Kiểm tra từ cuối chuỗi ngược lên theo dấu phẩy trước
+        // 1. Kiểm tra cụm cuối cùng sau dấu phẩy (bao gồm cả ánh xạ 63 tỉnh cũ -> 34 tỉnh mới sau sáp nhập)
         const segments = rawStr.split(',').map(s => s.trim()).filter(Boolean);
         const lastSegNorm = segments.length > 0
-            ? this.removeAccentsLower(segments[segments.length - 1]).replace(/^(?:tinh|thanh pho|tp)\s+/, '').trim()
+            ? stripAdminPrefix(this.removeAccentsLower(segments[segments.length - 1]))
             : '';
 
         if (lastSegNorm) {
@@ -1072,33 +1073,44 @@ class VNCCCDRecognizer {
                 return GENRE_DATA.provinceAliases[lastSegNorm];
             }
             for (const prov of GENRE_DATA.provinces) {
-                const pNorm = this.removeAccentsLower(prov).replace(/^tp\s+/, '').trim();
+                const pNorm = stripAdminPrefix(this.removeAccentsLower(prov));
                 if (lastSegNorm === pNorm || lastSegNorm.endsWith(pNorm)) {
                     return prov;
                 }
             }
         }
 
-        // 2. Quét khớp toàn chuỗi địa chỉ (dành cho OCR bị mất dấu phẩy)
-        // Sắp xếp tên tỉnh dài trước để tránh nhầm (VD: "Bà Rịa - Vũng Tàu", "TP. Hồ Chí Minh")
-        const sortedProvinces = [...GENRE_DATA.provinces].sort((a, b) => b.length - a.length);
-        for (const prov of sortedProvinces) {
-            const pNorm = this.removeAccentsLower(prov).replace(/^tp\s+/, '').trim();
-            if (pNorm.length >= 5 && normInput.endsWith(pNorm)) {
-                return prov;
-            }
-        }
-
+        // 2. Quét từ khóa tỉnh cũ & mới ở cuối chuỗi địa chỉ (trường hợp OCR mất dấu phẩy)
         if (GENRE_DATA.provinceAliases) {
-            for (const [alias, canonical] of Object.entries(GENRE_DATA.provinceAliases)) {
+            const sortedAliases = Object.entries(GENRE_DATA.provinceAliases)
+                .sort((a, b) => b[0].length - a[0].length);
+            for (const [alias, canonical] of sortedAliases) {
                 if (alias.length >= 5 && normInput.endsWith(alias)) {
                     return canonical;
                 }
             }
         }
 
+        const sortedProvinces = [...GENRE_DATA.provinces].sort((a, b) => b.length - a.length);
         for (const prov of sortedProvinces) {
-            const pNorm = this.removeAccentsLower(prov).replace(/^tp\s+/, '').trim();
+            const pNorm = stripAdminPrefix(this.removeAccentsLower(prov));
+            if (pNorm.length >= 5 && normInput.endsWith(pNorm)) {
+                return prov;
+            }
+        }
+
+        if (GENRE_DATA.provinceAliases) {
+            const sortedAliases = Object.entries(GENRE_DATA.provinceAliases)
+                .sort((a, b) => b[0].length - a[0].length);
+            for (const [alias, canonical] of sortedAliases) {
+                if (alias.length >= 6 && normInput.includes(alias)) {
+                    return canonical;
+                }
+            }
+        }
+
+        for (const prov of sortedProvinces) {
+            const pNorm = stripAdminPrefix(this.removeAccentsLower(prov));
             if (pNorm.length >= 6 && normInput.includes(pNorm)) {
                 return prov;
             }
@@ -1111,31 +1123,34 @@ class VNCCCDRecognizer {
         const out = {};
         if (!rawAddress) return out;
 
+        const stripAdminPrefix = (s) => s.replace(/^(?:tinh|thanh pho|tp)\s+/, '').trim();
         const matchedProv = this.matchProvinceInString(rawAddress);
         if (matchedProv) {
             out.thanhPhoTinh = matchedProv;
         }
 
-        // Luôn tách thêm các từ khóa đơn vị hành chính nếu trong 1 cụm bị dính liền do OCR mất dấu phẩy
         const injected = rawAddress
-            .replace(/,?\s+(?=(?:Phường|P\.|Xã|Thị\s*trấn|TT\.|Quận|Q\.|Huyện|H\.|Thị\s*xã|TX\.|Thành\s*phố|TP\.?|Tỉnh)\s)/gi, ', ');
+            .replace(/,?\s+(?=(?:Phường|P\.|Xã|Thị\s*trấn|TT\.|Đặc\s*khu|Quận|Q\.|Huyện|H\.|Thị\s*xã|TX\.|Thành\s*phố|TP\.?|Tỉnh)\s)/gi, ', ');
         let parts = injected.split(',').map(s => s.trim()).filter(Boolean);
 
-        // Loại bỏ phần Tỉnh/Thành phố ở cuối khỏi danh sách chi tiết
-        if (parts.length >= 2 && matchedProv) {
-            const lastNorm = this.removeAccentsLower(parts[parts.length - 1]).replace(/^(?:tinh|thanh pho|tp)\s+/, '');
-            const provNorm = this.removeAccentsLower(matchedProv).replace(/^tp\s+/, '');
-            if (lastNorm.includes(provNorm) || provNorm.includes(lastNorm)) {
+        // Loại bỏ phần Tỉnh/Thành phố (cũ hoặc mới) ở cuối
+        if (parts.length >= 2) {
+            const lastNorm = stripAdminPrefix(this.removeAccentsLower(parts[parts.length - 1]));
+            const isOldAlias = GENRE_DATA.provinceAliases && Boolean(GENRE_DATA.provinceAliases[lastNorm]);
+            const provNorm = matchedProv ? stripAdminPrefix(this.removeAccentsLower(matchedProv)) : '';
+            if (isOldAlias || (provNorm && (lastNorm.includes(provNorm) || provNorm.includes(lastNorm)))) {
                 parts.pop();
             }
         }
 
-        if (parts.length >= 3) {
-            out.phuongXa = `${parts[parts.length - 2]}, ${parts[parts.length - 1]}`;
-            out.soNhaTenDuong = parts.slice(0, parts.length - 2).join(', ');
-        } else if (parts.length === 2) {
-            out.phuongXa = parts[1];
-            out.soNhaTenDuong = parts[0];
+        // Bỏ cấp Quận/Huyện trung gian đã bãi bỏ theo mô hình chính quyền 2 cấp mới để lấy đúng Phường/Xã
+        if (parts.length >= 2 && /^(?:Quận|Q\.|Huyện|H\.|Thị\s*xã|TX\.|Thành\s*phố|TP\.)\s/i.test(parts[parts.length - 1])) {
+            parts.pop();
+        }
+
+        if (parts.length >= 2) {
+            out.phuongXa = parts[parts.length - 1];
+            out.soNhaTenDuong = parts.slice(0, parts.length - 1).join(', ');
         } else if (parts.length === 1) {
             out.phuongXa = parts[0];
             out.soNhaTenDuong = parts[0];

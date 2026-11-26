@@ -1,8 +1,7 @@
 /**
- * Điều khiển Native Mobile App UI cho Hồ Sơ GENRE (Generali Việt Nam)
- * - Segmented Pill Controls chạm 1 ngón cho Danh xưng, Giới tính, Hôn nhân, Loại giấy tờ
- * - Bank Quick Chips chạm 1 ngón chọn nhanh Ngân hàng
- * - Đồng bộ 2 chiều với bộ eKYC Scanner (Trích xuất QR/OCR & Đính kèm 2 mặt CCCD)
+ * Điều khiển Form Đăng Ký Hồ Sơ GENRE — Generali Việt Nam
+ * - Giao diện phẳng, rộng, rõ ràng
+ * - Tích hợp danh mục hành chính mới sau sáp nhập (34 Tỉnh/Thành phố & 3.321 Phường/Xã/Đặc khu)
  */
 
 const GENRE_CONFIG = {
@@ -15,14 +14,10 @@ const GENRE_CONFIG = {
 document.addEventListener('DOMContentLoaded', () => {
     initDropdownData();
     bindFormEvents();
-    loadSavedConfig();
     restoreDraftData();
     syncAllSegmentedTracksFromInputs();
 });
 
-/**
- * Chọn giá trị trên thanh Segmented Pill Control chuẩn iOS
- */
 function selectSegmented(fieldId, value, skipCascade = false) {
     const input = document.getElementById(fieldId);
     if (input) {
@@ -33,15 +28,10 @@ function selectSegmented(fieldId, value, skipCascade = false) {
     const track = document.querySelector(`.segmented-track[data-target="${fieldId}"]`);
     if (track) {
         track.querySelectorAll('.seg-pill').forEach(btn => {
-            if (btn.dataset.val === value) {
-                btn.classList.add('active');
-            } else {
-                btn.classList.remove('active');
-            }
+            btn.classList.toggle('active', btn.dataset.val === value);
         });
     }
 
-    // Tự động đồng bộ Danh xưng <-> Giới tính
     if (!skipCascade && fieldId === 'danhXung') {
         if (value === 'Anh' || value === 'Ông') {
             selectSegmented('gioiTinh', 'Nam', true);
@@ -69,40 +59,87 @@ function syncAllSegmentedTracksFromInputs() {
     });
 }
 
-/**
- * Chọn nhanh Ngân hàng từ thanh Bank Chips
- */
-function quickSelectBank(bankCode, chipBtn) {
-    document.querySelectorAll('#popularBankChips .bank-chip').forEach(b => b.classList.remove('active'));
-    if (chipBtn) chipBtn.classList.add('active');
-
-    const picker = document.getElementById('bankQuickPicker');
-    if (picker) picker.value = bankCode;
-
-    applyBankSelection(bankCode);
+function normalizeAdminCompare(str) {
+    return (str || '')
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .replace(/đ/g, 'd')
+        .replace(/Đ/g, 'd')
+        .toLowerCase()
+        .replace(/^(?:phuong|p\.|xa|x\.|thi tran|tt\.|dac khu)\s+/, '')
+        .replace(/[^a-z0-9\s]/g, ' ')
+        .replace(/\s+/g, ' ')
+        .trim();
 }
 
-function applyBankSelection(selectedCode) {
-    const bank = GENRE_DATA.banks.find(b => b.code === selectedCode);
-    const maNH = document.getElementById('maSoNganHang');
-    const tenNH = document.getElementById('tenNganHang');
-    if (bank) {
-        if (maNH) {
-            maNH.value = bank.code;
-            clearFieldError(maNH);
-        }
-        if (tenNH) {
-            tenNH.value = bank.fullName;
-        }
-        saveDraftData();
+/**
+ * Nạp danh sách Phường / Xã / Đặc khu mới sau sáp nhập theo Tỉnh / Thành phố đã chọn
+ */
+function populateWardsForProvince(provinceName, preferredWard = '') {
+    const wardSelect = document.getElementById('phuongXa');
+    if (!wardSelect) return;
+
+    wardSelect.innerHTML = '<option value="">-- Chọn Phường / Xã --</option>';
+
+    const wards = (typeof VN_ADMIN_2025 !== 'undefined' && VN_ADMIN_2025[provinceName])
+        ? VN_ADMIN_2025[provinceName]
+        : [];
+
+    wards.forEach(wName => {
+        const opt = document.createElement('option');
+        opt.value = wName;
+        opt.textContent = wName;
+        wardSelect.appendChild(opt);
+    });
+
+    if (preferredWard) {
+        trySelectMergedWard(preferredWard);
     }
 }
+window.populateWardsForProvince = populateWardsForProvince;
+
+function trySelectMergedWard(rawWardCandidate) {
+    const wardSelect = document.getElementById('phuongXa');
+    const provSelect = document.getElementById('thanhPhoTinh');
+    if (!wardSelect || !rawWardCandidate) return false;
+
+    const provinceName = provSelect?.value || '';
+    const wards = (typeof VN_ADMIN_2025 !== 'undefined' && VN_ADMIN_2025[provinceName])
+        ? VN_ADMIN_2025[provinceName]
+        : [];
+    if (wards.length === 0) return false;
+
+    // 1. Khớp chính xác tuyệt đối
+    if (wards.includes(rawWardCandidate)) {
+        wardSelect.value = rawWardCandidate;
+        clearFieldError(wardSelect);
+        return true;
+    }
+
+    // 2. Khớp theo tên chuẩn hóa (bỏ tiền tố Phường/Xã/P.)
+    const targetCore = normalizeAdminCompare(rawWardCandidate.split(',')[0]);
+    if (!targetCore) return false;
+
+    const matched = wards.find(w => normalizeAdminCompare(w) === targetCore);
+    if (matched) {
+        wardSelect.value = matched;
+        clearFieldError(wardSelect);
+        return true;
+    }
+
+    return false;
+}
+window.trySelectMergedWard = trySelectMergedWard;
 
 function initDropdownData() {
     const noiSinhSelect = document.getElementById('noiSinh');
     const tinhSelect = document.getElementById('thanhPhoTinh');
 
-    GENRE_DATA.provinces.forEach(prov => {
+    const adminProvinces = (typeof VN_ADMIN_2025 !== 'undefined')
+        ? Object.keys(VN_ADMIN_2025)
+        : GENRE_DATA.provinces;
+
+    adminProvinces.forEach(prov => {
         if (noiSinhSelect) {
             const opt1 = document.createElement('option');
             opt1.value = prov;
@@ -131,14 +168,13 @@ function initDropdownData() {
         GENRE_DATA.banks.forEach(bank => {
             const opt = document.createElement('option');
             opt.value = bank.code;
-            opt.textContent = `${bank.shortName} - ${bank.fullName}`;
+            opt.textContent = `${bank.shortName} — ${bank.fullName}`;
             bankPicker.appendChild(opt);
         });
     }
 }
 
 function bindFormEvents() {
-    // Khi scanner tự động gán giá trị cho các hidden input (danhXung, gioiTinh, tinhTrangHonNhan, loaiGiayTo)
     ['danhXung', 'gioiTinh', 'tinhTrangHonNhan', 'loaiGiayTo'].forEach(id => {
         const el = document.getElementById(id);
         if (el) {
@@ -148,7 +184,6 @@ function bindFormEvents() {
         }
     });
 
-    // Tự động viết hoa Họ, Tên đệm, Tên & Điền Tên chủ tài khoản không dấu
     ['ho', 'tenDem', 'ten'].forEach(id => {
         const el = document.getElementById(id);
         if (el) {
@@ -163,7 +198,16 @@ function bindFormEvents() {
         }
     });
 
-    // Switch iOS ẩn/hiện CMND/CCCD cũ
+    // Khi chọn Thành phố / Tỉnh -> Nạp danh sách Phường / Xã mới sau sáp nhập
+    const tinhSelect = document.getElementById('thanhPhoTinh');
+    if (tinhSelect) {
+        tinhSelect.addEventListener('change', () => {
+            populateWardsForProvince(tinhSelect.value);
+            clearFieldError(tinhSelect);
+            saveDraftData();
+        });
+    }
+
     const toggleOldId = document.getElementById('toggleOldId');
     const oldIdSection = document.getElementById('oldIdSection');
     if (toggleOldId && oldIdSection) {
@@ -180,19 +224,23 @@ function bindFormEvents() {
         });
     }
 
-    // Dropdown chọn tất cả ngân hàng
     const bankPicker = document.getElementById('bankQuickPicker');
     if (bankPicker) {
         bankPicker.addEventListener('change', () => {
             const code = bankPicker.value;
-            document.querySelectorAll('#popularBankChips .bank-chip').forEach(b => {
-                b.classList.toggle('active', b.getAttribute('onclick')?.includes(`'${code}'`));
-            });
-            applyBankSelection(code);
+            const bank = GENRE_DATA.banks.find(b => b.code === code);
+            const maNH = document.getElementById('maSoNganHang');
+            const tenNH = document.getElementById('tenNganHang');
+            if (bank) {
+                if (maNH && !maNH.value) maNH.value = bank.code;
+                if (tenNH) tenNH.value = bank.fullName;
+            } else {
+                if (tenNH) tenNH.value = '';
+            }
+            saveDraftData();
         });
     }
 
-    // Nút Up Hình CCCD (1 hoặc 2 mặt)
     const batchUploadInput = document.getElementById('batchUploadInput');
     if (batchUploadInput) {
         batchUploadInput.addEventListener('change', (e) => {
@@ -221,7 +269,6 @@ function bindFormEvents() {
     bindSingleFileInput('cameraInputFront', 'front');
     bindSingleFileInput('cameraInputBack', 'back');
 
-    // Xóa lỗi khi nhập
     document.querySelectorAll('.form-input, .form-select').forEach(el => {
         el.addEventListener('input', () => {
             clearFieldError(el);
@@ -233,10 +280,9 @@ function bindFormEvents() {
         });
     });
 
-    // Active tab pill khi bấm chuyển vùng
-    document.querySelectorAll('.section-nav-scroll .nav-pill').forEach(pill => {
+    document.querySelectorAll('.flat-nav-tabs .nav-pill').forEach(pill => {
         pill.addEventListener('click', () => {
-            document.querySelectorAll('.section-nav-scroll .nav-pill').forEach(p => p.classList.remove('active'));
+            document.querySelectorAll('.flat-nav-tabs .nav-pill').forEach(p => p.classList.remove('active'));
             pill.classList.add('active');
         });
     });
@@ -273,12 +319,11 @@ function validateAllFields() {
         const el = document.getElementById(id);
         if (!el) return;
         isValid = false;
-        const cell = el.closest('.native-cell') || el.parentElement;
-        if (!firstInvalidEl) firstInvalidEl = cell || el;
+        const container = el.closest('.flat-field') || el.parentElement;
+        if (!firstInvalidEl) firstInvalidEl = container || el;
         el.classList.add('input-error');
-        if (cell) cell.classList.add('has-error');
 
-        const errEl = (cell || el.parentElement)?.querySelector('.field-error-msg');
+        const errEl = container?.querySelector('.field-error-msg');
         if (errEl) {
             errEl.textContent = message;
             errEl.classList.remove('hidden');
@@ -288,7 +333,7 @@ function validateAllFields() {
     const requireField = (id, label) => {
         const el = document.getElementById(id);
         if (!el || !String(el.value || '').trim()) {
-            markInvalid(id, `Thiếu ${label}`);
+            markInvalid(id, `Vui lòng nhập/chọn ${label}`);
             return false;
         }
         return true;
@@ -313,33 +358,33 @@ function validateAllFields() {
     requireField('quocTich', 'Quốc tịch');
     requireField('loaiGiayTo', 'Loại giấy tờ');
 
-    if (requireField('soGiayTo', 'Số CMND/CCCD')) {
+    if (requireField('soGiayTo', 'CMND/CCCD')) {
         const loai = document.getElementById('loaiGiayTo').value;
         const so = document.getElementById('soGiayTo').value.trim();
         if (loai === 'Căn cước Công dân' && !/^\d{12}$/.test(so)) {
-            markInvalid('soGiayTo', 'CCCD gồm đúng 12 số');
+            markInvalid('soGiayTo', 'CCCD phải gồm 12 chữ số');
         } else if (loai === 'Chứng minh Nhân dân' && !/^(\d{9}|\d{12})$/.test(so)) {
-            markInvalid('soGiayTo', 'CMND gồm 9 hoặc 12 số');
+            markInvalid('soGiayTo', 'CMND phải gồm 9 hoặc 12 chữ số');
         }
     }
     requireField('noiCap', 'Nơi cấp');
     requireField('ngayCap', 'Ngày cấp');
 
-    requireField('thanhPhoTinh', 'Tỉnh / Thành phố');
+    requireField('thanhPhoTinh', 'Thành phố / Tỉnh');
     requireField('phuongXa', 'Phường / Xã');
     requireField('soNhaTenDuong', 'Số nhà, tên đường');
 
-    if (requireField('dienThoai', 'Số điện thoại')) {
+    if (requireField('dienThoai', 'Điện thoại di động')) {
         const phoneVal = document.getElementById('dienThoai').value.trim().replace(/\s+/g, '');
         if (!/^(0|\+84)[35789]\d{8}$/.test(phoneVal)) {
-            markInvalid('dienThoai', 'SĐT gồm 10 số (09xxxxxxxx)');
+            markInvalid('dienThoai', 'Số điện thoại không hợp lệ');
         }
     }
 
     if (requireField('email', 'Email')) {
         const emailVal = document.getElementById('email').value.trim();
         if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailVal)) {
-            markInvalid('email', 'Email chưa đúng định dạng');
+            markInvalid('email', 'Email không hợp lệ');
         }
     }
 
@@ -365,7 +410,7 @@ function validateAllFields() {
 
     if (!isValid && firstInvalidEl) {
         firstInvalidEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        showToast('Vui lòng kiểm tra các ô báo đỏ & đính kèm đủ 2 mặt CCCD', 'error');
+        showToast('Vui lòng kiểm tra các mục bắt buộc (*) và 2 mặt CCCD', 'error');
     }
 
     return isValid;
@@ -373,12 +418,9 @@ function validateAllFields() {
 
 function clearFieldError(el) {
     el.classList.remove('input-error');
-    const cell = el.closest('.native-cell') || el.parentElement;
-    if (cell) {
-        cell.classList.remove('has-error');
-        const errEl = cell.querySelector('.field-error-msg');
-        if (errEl) errEl.classList.add('hidden');
-    }
+    const container = el.closest('.flat-field') || el.parentElement;
+    const errEl = container?.querySelector('.field-error-msg');
+    if (errEl) errEl.classList.add('hidden');
 }
 
 function formatDateVN(isoDate) {
@@ -397,38 +439,38 @@ function collectFormPayload() {
         sheetName: GENRE_CONFIG.SHEET_NAME,
         submittedAt: new Date().toISOString(),
         fields: {
-            danhXung: val('danhXung'),                                  // Cột B
-            ho: val('ho').toUpperCase(),                                // Cột C
-            tenDem: val('tenDem').toUpperCase(),                        // Cột D
-            ten: val('ten').toUpperCase(),                              // Cột E
-            ngaySinh: formatDateVN(val('ngaySinh')),                    // Cột F
-            gioiTinh: val('gioiTinh'),                                  // Cột G
-            noiSinh: val('noiSinh'),                                    // Cột H
-            tinhTrangHonNhan: val('tinhTrangHonNhan'),                  // Cột I
-            quocTich: val('quocTich'),                                  // Cột J
-            loaiGiayTo: val('loaiGiayTo'),                              // Cột K
-            soGiayTo: val('soGiayTo'),                                  // Cột L
-            noiCap: val('noiCap'),                                      // Cột M
-            ngayCap: formatDateVN(val('ngayCap')),                      // Cột N
-            loaiGiayToCu: val('loaiGiayToCu'),                          // Cột O
-            soGiayToCu: val('soGiayToCu'),                              // Cột P
-            noiCapCu: val('noiCapCu'),                                  // Cột Q
-            ngayCapCu: formatDateVN(val('ngayCapCu')),                  // Cột R
-            thanhPhoTinh: val('thanhPhoTinh'),                          // Cột S
-            phuongXa: val('phuongXa'),                                  // Cột T
-            soNhaTenDuong: val('soNhaTenDuong'),                        // Cột U
-            email: val('email'),                                        // Cột V
-            dienThoai: val('dienThoai'),                                // Cột W
-            dongYNhanThongTin: dongYCheckbox?.checked ? 'Đồng ý' : 'Chưa đồng ý', // Cột X
-            soTaiKhoan: val('soTaiKhoan'),                              // Cột Y
-            tenTaiKhoan: val('tenTaiKhoan').toUpperCase(),              // Cột Z
-            maSoNganHang: val('maSoNganHang'),                          // Cột AA
-            tenNganHang: val('tenNganHang'),                            // Cột AB
-            maSoChiNhanh: val('maSoChiNhanh'),                          // Cột AC
-            tenChiNhanh: val('tenChiNhanh'),                            // Cột AD
-            diaChiChiNhanh: val('diaChiChiNhanh'),                      // Cột AE
-            cccdMatTruocStatus: window.cccdScanner.images.front ? 'Đã tải lên' : 'Chưa đính kèm', // Cột AF
-            cccdMatSauStatus: window.cccdScanner.images.back ? 'Đã tải lên' : 'Chưa đính kèm'     // Cột AG
+            danhXung: val('danhXung'),
+            ho: val('ho').toUpperCase(),
+            tenDem: val('tenDem').toUpperCase(),
+            ten: val('ten').toUpperCase(),
+            ngaySinh: formatDateVN(val('ngaySinh')),
+            gioiTinh: val('gioiTinh'),
+            noiSinh: val('noiSinh'),
+            tinhTrangHonNhan: val('tinhTrangHonNhan'),
+            quocTich: val('quocTich'),
+            loaiGiayTo: val('loaiGiayTo'),
+            soGiayTo: val('soGiayTo'),
+            noiCap: val('noiCap'),
+            ngayCap: formatDateVN(val('ngayCap')),
+            loaiGiayToCu: val('loaiGiayToCu'),
+            soGiayToCu: val('soGiayToCu'),
+            noiCapCu: val('noiCapCu'),
+            ngayCapCu: formatDateVN(val('ngayCapCu')),
+            thanhPhoTinh: val('thanhPhoTinh'),
+            phuongXa: val('phuongXa'),
+            soNhaTenDuong: val('soNhaTenDuong'),
+            email: val('email'),
+            dienThoai: val('dienThoai'),
+            dongYNhanThongTin: dongYCheckbox?.checked ? 'Đồng ý' : 'Chưa đồng ý',
+            soTaiKhoan: val('soTaiKhoan'),
+            tenTaiKhoan: val('tenTaiKhoan').toUpperCase(),
+            maSoNganHang: val('maSoNganHang'),
+            tenNganHang: val('tenNganHang'),
+            maSoChiNhanh: val('maSoChiNhanh'),
+            tenChiNhanh: val('tenChiNhanh'),
+            diaChiChiNhanh: val('diaChiChiNhanh'),
+            cccdMatTruocStatus: window.cccdScanner.images.front ? 'Đã tải lên' : 'Chưa đính kèm',
+            cccdMatSauStatus: window.cccdScanner.images.back ? 'Đã tải lên' : 'Chưa đính kèm'
         },
         images: {
             cccdFrontBase64: window.cccdScanner.images.front || '',
@@ -446,13 +488,7 @@ async function submitGenreForm() {
     const btnSubmit = document.getElementById('btnSubmitForm');
     const originalText = btnSubmit.innerHTML;
     btnSubmit.disabled = true;
-    btnSubmit.innerHTML = `
-        <svg class="animate-spin h-5 w-5 text-white inline mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-        </svg>
-        <span>Đang đồng bộ lên Google Sheet...</span>
-    `;
+    btnSubmit.innerHTML = '<span>Đang gửi hồ sơ...</span>';
 
     try {
         if (typeof google !== 'undefined' && google.script && google.script.run) {
@@ -475,7 +511,6 @@ async function submitGenreForm() {
             });
             onSubmissionSuccess(payload);
         } else {
-            saveLocalSubmissionHistory(payload);
             onSubmissionSuccess(payload, true);
         }
     } catch (error) {
@@ -487,8 +522,7 @@ async function submitGenreForm() {
     }
 }
 
-function onSubmissionSuccess(payload, isOfflineDemo = false) {
-    saveLocalSubmissionHistory(payload);
+function onSubmissionSuccess(payload) {
     localStorage.removeItem('GENRE_FORM_DRAFT');
 
     document.getElementById('mainFormContainer')?.classList.add('hidden');
@@ -500,17 +534,6 @@ function onSubmissionSuccess(payload, isOfflineDemo = false) {
     document.getElementById('successApplicantName').textContent = `${f.danhXung} ${fullName}`;
     document.getElementById('successApplicantCCCD').textContent = f.soGiayTo;
     document.getElementById('successApplicantPhone').textContent = f.dienThoai;
-
-    const syncNote = document.getElementById('successSyncNote');
-    if (syncNote) {
-        syncNote.innerHTML = isOfflineDemo
-            ? `<div class="p-3 rounded-2xl bg-amber-50 border border-amber-200 text-amber-800 text-xs mt-3 text-left">
-                Bạn chưa dán URL Google Apps Script trong mục <strong>Sheet</strong> (góc phải trên). Bạn có thể tải file CSV bên dưới hoặc gắn URL để tự động đổ vào Google Sheet.
-               </div>`
-            : `<div class="p-3 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-semibold mt-3">
-                ✓ Đã ghi tự động vào Sheet Danh_Sach_Tong_Hop
-               </div>`;
-    }
 
     window.lastSubmittedPayload = payload;
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -554,22 +577,17 @@ function downloadLastSubmissionCSV() {
     URL.revokeObjectURL(url);
 }
 
-function confirmResetForm() {
-    resetForNewRegistration();
-    showToast('Đã làm mới toàn bộ form để tạo hồ sơ mới!', 'info');
-}
-
 function resetForNewRegistration() {
     localStorage.removeItem('GENRE_FORM_DRAFT');
     document.getElementById('genreRegistrationForm').reset();
     document.getElementById('oldIdSection')?.classList.add('hidden');
+    populateWardsForProvince('');
     selectSegmented('danhXung', 'Anh');
     selectSegmented('gioiTinh', 'Nam');
     selectSegmented('tinhTrangHonNhan', 'Độc thân');
     selectSegmented('loaiGiayTo', 'Căn cước Công dân');
-    document.querySelectorAll('#popularBankChips .bank-chip').forEach(b => b.classList.remove('active'));
-    document.querySelectorAll('.native-cell.has-error').forEach(c => c.classList.remove('has-error'));
     document.querySelectorAll('.field-error-msg').forEach(e => e.classList.add('hidden'));
+    document.querySelectorAll('.input-error').forEach(e => e.classList.remove('input-error'));
 
     window.cccdScanner.removeImage('front');
     window.cccdScanner.removeImage('back');
@@ -591,7 +609,7 @@ function saveDraftData() {
             'tinhTrangHonNhan', 'quocTich', 'loaiGiayTo', 'soGiayTo', 'noiCap', 'ngayCap',
             'loaiGiayToCu', 'soGiayToCu', 'noiCapCu', 'ngayCapCu',
             'thanhPhoTinh', 'phuongXa', 'soNhaTenDuong', 'email', 'dienThoai',
-            'soTaiKhoan', 'tenTaiKhoan', 'maSoNganHang', 'tenNganHang',
+            'bankQuickPicker', 'soTaiKhoan', 'tenTaiKhoan', 'maSoNganHang', 'tenNganHang',
             'maSoChiNhanh', 'tenChiNhanh', 'diaChiChiNhanh'
         ];
         const draft = {};
@@ -608,12 +626,22 @@ function restoreDraftData() {
         const raw = localStorage.getItem('GENRE_FORM_DRAFT');
         if (!raw) return;
         const draft = JSON.parse(raw);
+
+        // Nạp lại danh sách Phường/Xã mới trước khi gán giá trị đã lưu
+        if (draft.thanhPhoTinh) {
+            const tinhEl = document.getElementById('thanhPhoTinh');
+            if (tinhEl) tinhEl.value = draft.thanhPhoTinh;
+            populateWardsForProvince(draft.thanhPhoTinh, draft.phuongXa || '');
+        }
+
         Object.keys(draft).forEach(id => {
+            if (id === 'thanhPhoTinh' || id === 'phuongXa') return;
             const el = document.getElementById(id);
             if (el && draft[id]) {
                 el.value = draft[id];
             }
         });
+
         if (draft.soGiayToCu || draft.loaiGiayToCu) {
             const toggleOld = document.getElementById('toggleOldId');
             const oldSection = document.getElementById('oldIdSection');
@@ -625,68 +653,10 @@ function restoreDraftData() {
     } catch (e) {}
 }
 
-function saveLocalSubmissionHistory(payload) {
-    try {
-        const list = JSON.parse(localStorage.getItem('GENRE_SUBMISSIONS') || '[]');
-        list.unshift({ time: payload.submittedAt, fields: payload.fields });
-        localStorage.setItem('GENRE_SUBMISSIONS', JSON.stringify(list.slice(0, 30)));
-    } catch (e) {}
-}
-
 function getActiveScriptUrl() {
     const urlParam = new URLSearchParams(window.location.search).get('api');
     if (urlParam) return urlParam;
     return localStorage.getItem('GENRE_GAS_URL') || GENRE_CONFIG.DEFAULT_SCRIPT_URL;
-}
-
-function loadSavedConfig() {
-    const savedUrl = getActiveScriptUrl();
-    const input = document.getElementById('gasWebhookUrlInput');
-    if (input && savedUrl) input.value = savedUrl;
-    updateConnectionBadge();
-}
-
-function saveGasConfig() {
-    const input = document.getElementById('gasWebhookUrlInput');
-    if (!input) return;
-    const url = input.value.trim();
-    localStorage.setItem('GENRE_GAS_URL', url);
-    updateConnectionBadge();
-    toggleSettingsModal(false);
-    showToast(url ? 'Đã lưu kết nối Google Sheet!' : 'Đã xóa URL kết nối.', 'success');
-}
-
-function updateConnectionBadge() {
-    const badge = document.getElementById('sheetConnectionStatus');
-    const url = getActiveScriptUrl();
-    const isInsideGAS = typeof google !== 'undefined' && google.script && google.script.run;
-    if (!badge) return;
-
-    if (url || isInsideGAS) {
-        badge.innerHTML = `<span class="w-2 h-2 rounded-full bg-emerald-500 inline-block mr-1.5"></span>Đã nối Sheet`;
-    } else {
-        badge.innerHTML = `<span class="w-2 h-2 rounded-full bg-amber-400 inline-block mr-1.5"></span>Sheet`;
-    }
-}
-
-function toggleSettingsModal(show) {
-    const modal = document.getElementById('settingsModal');
-    if (!modal) return;
-    if (show) {
-        modal.classList.remove('hidden');
-        const qrImg = document.getElementById('shareFormQrImg');
-        const shareUrlInput = document.getElementById('shareFormUrlInput');
-        const currentUrl = window.location.href.startsWith('http')
-            ? window.location.href
-            : (GENRE_CONFIG.LIVE_APP_URL || 'https://generali-genre-ekyc.vercel.app/');
-        if (shareUrlInput) shareUrlInput.value = currentUrl;
-        if (qrImg) {
-            qrImg.src = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(currentUrl)}`;
-            qrImg.classList.remove('hidden');
-        }
-    } else {
-        modal.classList.add('hidden');
-    }
 }
 
 function showToast(message, type = 'info') {
@@ -694,18 +664,18 @@ function showToast(message, type = 'info') {
     if (!container) return;
 
     const colors = {
-        success: 'bg-gray-900/95 text-white border border-emerald-500/40',
-        error: 'bg-red-700/95 text-white',
-        info: 'bg-gray-900/95 text-white'
+        success: 'bg-gray-900 text-white',
+        error: 'bg-red-700 text-white',
+        info: 'bg-gray-900 text-white'
     };
 
     const toast = document.createElement('div');
-    toast.className = `${colors[type] || colors.info} backdrop-blur-md px-4 py-3 rounded-2xl shadow-xl text-xs font-bold flex items-center justify-center text-center transition-all duration-300`;
+    toast.className = `${colors[type] || colors.info} px-4 py-3 rounded-lg shadow-md text-xs font-bold text-center transition-opacity duration-300`;
     toast.innerHTML = `<span>${message}</span>`;
     container.appendChild(toast);
 
     setTimeout(() => {
         toast.style.opacity = '0';
         setTimeout(() => toast.remove(), 300);
-    }, 3200);
+    }, 3000);
 }

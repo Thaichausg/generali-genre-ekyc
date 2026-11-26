@@ -1,18 +1,16 @@
 /* ==========================================================================
-   GENERALI GENRE — NATIVE MOBILE APP UI SYSTEM (iOS / GenVita FinTech Grade)
+   GENERALI GENRE — FLAT, WIDE, SPACIOUS MOBILE UI
    ========================================================================== */
 
 :root {
     --gen-red: #C21B17;
-    --gen-red-deep: #8E110E;
-    --gen-red-soft: #FEF2F2;
+    --gen-red-dark: #9E1410;
     --gen-ink: #111827;
-    --gen-sub: #6B7280;
-    --gen-muted: #9CA3AF;
-    --gen-bg: #F2F3F7;
+    --gen-label: #374151;
+    --gen-border: #D1D5DB;
+    --gen-line: #E5E7EB;
+    --gen-bg: #F4F5F7;
     --gen-surface: #FFFFFF;
-    --gen-line: #EFEFEF;
-    --gen-green: #059669;
 }
 
 * {
@@ -22,12 +20,12 @@
 
 html {
     scroll-behavior: smooth;
-    background-color: #E5E7EB;
+    background-color: var(--gen-bg);
 }
 
 body {
-    font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'SF Pro Text', sans-serif;
-    background-color: #E5E7EB;
+    font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background-color: var(--gen-bg);
     color: var(--gen-ink);
     margin: 0;
     padding: 0;
@@ -36,291 +34,239 @@ body {
 
 .font-mono-num {
     font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, monospace;
-    letter-spacing: 0.02em;
 }
 
-/* Khung App Mobile: Toàn màn hình trên điện thoại, khung iPhone chuẩn trên Desktop */
-.native-app-viewport {
-    max-width: 440px;
+/* Khung rộng phẳng toàn màn hình Mobile, mở rộng thoáng trên Tablet/Desktop */
+.flat-app-container {
+    width: 100%;
+    max-width: 640px;
     margin: 0 auto;
     min-height: 100dvh;
     background-color: var(--gen-bg);
-    position: relative;
     display: flex;
     flex-direction: column;
-    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.14);
 }
 
-/* 1. NATIVE GLASS TOP NAVIGATION BAR */
-.native-topbar {
+/* Header phẳng, rộng, không nút thừa */
+.flat-header {
     position: sticky;
     top: 0;
     z-index: 40;
-    background: rgba(255, 255, 255, 0.88);
-    backdrop-filter: saturate(180%) blur(20px);
-    -webkit-backdrop-filter: saturate(180%) blur(20px);
-    border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+    background-color: var(--gen-surface);
+    border-bottom: 1px solid var(--gen-line);
 }
 
-/* Thanh Tab Neo Mục kiểu iOS Pill */
-.section-nav-scroll {
-    display: flex;
+.flat-nav-tabs {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
     gap: 6px;
-    overflow-x: auto;
-    scrollbar-width: none;
-    padding: 0 16px 10px;
-}
-.section-nav-scroll::-webkit-scrollbar {
-    display: none;
+    padding: 0 16px 12px;
 }
 
 .nav-pill {
-    flex: 1;
+    display: block;
     text-align: center;
-    white-space: nowrap;
-    padding: 6px 10px;
-    border-radius: 999px;
-    font-size: 12px;
-    font-weight: 600;
-    color: var(--gen-sub);
-    background: rgba(0, 0, 0, 0.04);
-    transition: all 0.2s ease;
-    text-decoration: none;
-}
-.nav-pill:active,
-.nav-pill.active {
-    background: var(--gen-red);
-    color: #FFFFFF;
-}
-
-/* 2. SIGNATURE HERO: eKYC SMART ID SCANNER DOCK */
-.ekyc-hero-card {
-    background: linear-gradient(145deg, #B81612 0%, #7F0D0A 100%);
-    border-radius: 22px;
-    padding: 16px;
-    color: #FFFFFF;
-    position: relative;
-    overflow: hidden;
-    box-shadow: 0 12px 28px -6px rgba(194, 27, 23, 0.42);
-}
-
-.ekyc-hero-card::before {
-    content: "";
-    position: absolute;
-    width: 220px;
-    height: 220px;
-    border-radius: 50%;
-    background: radial-gradient(circle, rgba(255,255,255,0.14) 0%, transparent 70%);
-    top: -90px;
-    right: -70px;
-    pointer-events: none;
-}
-
-.ekyc-action-btn {
-    border-radius: 14px;
-    padding: 12px 14px;
+    padding: 8px 4px;
+    border-radius: 8px;
     font-size: 13px;
+    font-weight: 600;
+    color: #4B5563;
+    background-color: #F3F4F6;
+    text-decoration: none;
+    transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.nav-pill.active,
+.nav-pill:active {
+    background-color: var(--gen-red);
+    color: #FFFFFF;
+}
+
+/* Khối nút Scan CCCD phẳng */
+.flat-scan-bar {
+    background-color: var(--gen-surface);
+    border: 1px solid var(--gen-line);
+    border-radius: 12px;
+    padding: 16px;
+}
+
+.flat-scan-btn {
+    height: 48px;
+    border-radius: 10px;
+    font-size: 14px;
     font-weight: 700;
     display: flex;
     align-items: center;
     justify-content: center;
     gap: 8px;
-    transition: transform 0.14s ease, background-color 0.15s ease;
     cursor: pointer;
-    border: none;
-}
-.ekyc-action-btn:active {
-    transform: scale(0.96);
+    transition: opacity 0.15s ease;
 }
 
-.ekyc-btn-camera {
-    background: #FFFFFF;
-    color: var(--gen-red);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.14);
+.flat-scan-btn:active {
+    opacity: 0.85;
 }
 
-.ekyc-btn-upload {
-    background: rgba(255, 255, 255, 0.16);
+.flat-scan-btn-primary {
+    background-color: var(--gen-red);
     color: #FFFFFF;
-    border: 1px solid rgba(255, 255, 255, 0.28);
-    backdrop-filter: blur(8px);
+    border: 1px solid var(--gen-red);
 }
 
-/* 2 ô Thumbnail Trạng thái Mặt trước / Mặt sau ngay trên Dock eKYC */
-.ekyc-mini-slot {
-    background: rgba(0, 0, 0, 0.22);
-    border: 1px solid rgba(255, 255, 255, 0.16);
-    border-radius: 12px;
-    padding: 7px 10px;
+.flat-scan-btn-outline {
+    background-color: var(--gen-surface);
+    color: var(--gen-red);
+    border: 1.5px solid var(--gen-red);
+}
+
+.flat-slot-pill {
+    height: 38px;
+    padding: 0 12px;
+    border-radius: 8px;
+    background-color: #F9FAFB;
+    border: 1px solid var(--gen-line);
     display: flex;
     align-items: center;
     justify-content: space-between;
+    font-size: 12.5px;
+    font-weight: 600;
+    color: #4B5563;
     text-decoration: none;
-    color: rgba(255, 255, 255, 0.9);
-    font-size: 11.5px;
-    font-weight: 600;
 }
 
-/* 3. NATIVE iOS / FINTECH INSET GROUPED LISTS (KHÔNG DÙNG Ô INPUT WEB CŨ) */
-.app-section-label {
-    font-size: 12px;
-    font-weight: 700;
+/* Các khối mục phẳng, rộng rãi */
+.flat-section {
+    background-color: var(--gen-surface);
+    border: 1px solid var(--gen-line);
+    border-radius: 12px;
+    padding: 20px 16px;
+}
+
+.flat-section-title {
+    font-size: 15px;
+    font-weight: 800;
+    color: var(--gen-ink);
     text-transform: uppercase;
-    letter-spacing: 0.06em;
-    color: var(--gen-sub);
-    padding: 0 6px;
-    margin-bottom: 6px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
+    letter-spacing: 0.02em;
+    padding-bottom: 14px;
+    margin: 0 0 16px 0;
+    border-bottom: 1px solid var(--gen-line);
 }
 
-.native-group-card {
-    background: var(--gen-surface);
-    border-radius: 18px;
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03), 0 0 0 1px rgba(0, 0, 0, 0.04);
-    overflow: hidden;
+/* Trường nhập liệu phẳng, 1 cột rộng thoáng, tiêu đề rõ ràng không dồn cục */
+.flat-field {
+    margin-bottom: 16px;
 }
 
-.native-cell {
-    position: relative;
-    padding: 11px 15px;
-    background: var(--gen-surface);
-    transition: background-color 0.18s ease;
+.flat-field:last-child {
+    margin-bottom: 0;
 }
 
-.native-cell + .native-cell {
-    border-top: 1px solid var(--gen-line);
-}
-
-.native-cell-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    border-top: 1px solid var(--gen-line);
-}
-.native-cell-grid > .native-cell + .native-cell {
-    border-top: none;
-    border-left: 1px solid var(--gen-line);
-}
-
-.native-cell-grid-3 {
-    display: grid;
-    grid-template-columns: 1fr 1fr 1fr;
-    border-top: 1px solid var(--gen-line);
-}
-.native-cell-grid-3 > .native-cell + .native-cell {
-    border-top: none;
-    border-left: 1px solid var(--gen-line);
-}
-
-.native-cell:focus-within {
-    background-color: #FFF9F9;
-}
-
-.cell-label {
+.flat-label {
     display: block;
-    font-size: 11px;
+    font-size: 14px;
     font-weight: 600;
-    color: var(--gen-sub);
-    margin-bottom: 3px;
-    line-height: 1.2;
+    color: var(--gen-label);
+    margin-bottom: 8px;
+    line-height: 1.35;
 }
 
-.cell-label .req {
+.flat-label .req {
     color: var(--gen-red);
     font-weight: 700;
-    margin-left: 1px;
+    margin-left: 2px;
 }
 
-.cell-input,
-.cell-select {
+.flat-input,
+.flat-select {
     width: 100%;
-    border: none;
-    outline: none;
-    background: transparent;
-    padding: 2px 0 0 0;
-    margin: 0;
-    font-size: 15px !important; /* Ngăn iOS Safari tự zoom */
-    font-weight: 600;
-    color: var(--gen-ink);
-    line-height: 1.35;
-    appearance: none;
-}
-
-.cell-input::placeholder {
-    color: #C5C9D2;
+    height: 48px;
+    padding: 0 14px;
+    border: 1px solid var(--gen-border);
+    border-radius: 10px;
+    background-color: #FFFFFF;
+    font-size: 16px !important;
     font-weight: 500;
+    color: var(--gen-ink);
+    outline: none;
+    appearance: none;
+    transition: border-color 0.15s ease;
 }
 
-.cell-select-wrap {
+.flat-input:focus,
+.flat-select:focus {
+    border-color: var(--gen-red);
+}
+
+.flat-select-wrap {
     position: relative;
-    display: flex;
-    align-items: center;
 }
 
-.cell-select-wrap::after {
+.flat-select-wrap::after {
     content: "";
-    width: 8px;
-    height: 5px;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 10 6'%3E%3Cpath stroke='%239CA3AF' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.8' d='m1 1 4 4 4-4'/%3E%3C/svg%3E");
+    position: absolute;
+    right: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 10px;
+    height: 6px;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 10 6'%3E%3Cpath stroke='%236B7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.8' d='m1 1 4 4 4-4'/%3E%3C/svg%3E");
     background-repeat: no-repeat;
     background-size: contain;
     pointer-events: none;
-    margin-left: 6px;
-    flex-shrink: 0;
 }
 
-/* Trạng thái lỗi của Cell */
-.native-cell.has-error,
-.form-input.input-error,
-.form-select.input-error {
+.flat-select {
+    padding-right: 36px;
+}
+
+.flat-input.input-error,
+.flat-select.input-error {
+    border-color: #DC2626;
     background-color: #FEF2F2;
 }
 
 .field-error-msg {
-    font-size: 11px;
+    font-size: 12.5px;
     font-weight: 600;
     color: #DC2626;
-    margin-top: 3px;
+    margin-top: 6px;
 }
 
-/* 4. NATIVE SEGMENTED PILL CONTROLS (Thay cho dropdown Danh xưng / Giới tính / Hôn nhân) */
+/* Segmented Control phẳng, rộng dễ bấm */
 .segmented-track {
-    display: flex;
-    background: #F2F3F7;
-    padding: 3px;
-    border-radius: 11px;
-    gap: 3px;
-    margin-top: 4px;
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: 1fr;
+    gap: 8px;
 }
 
 .seg-pill {
-    flex: 1;
-    border: none;
-    background: transparent;
-    padding: 6px 4px;
-    border-radius: 8.5px;
-    font-size: 12.5px;
+    height: 46px;
+    border: 1px solid var(--gen-border);
+    background-color: #FFFFFF;
+    border-radius: 10px;
+    font-size: 14px;
     font-weight: 600;
-    color: var(--gen-sub);
+    color: #374151;
     cursor: pointer;
-    transition: all 0.16s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: all 0.15s ease;
     text-align: center;
+    padding: 0 8px;
 }
 
 .seg-pill.active {
-    background: #FFFFFF;
-    color: var(--gen-red);
-    font-weight: 700;
-    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.09);
+    background-color: var(--gen-red);
+    border-color: var(--gen-red);
+    color: #FFFFFF;
 }
 
-/* 5. NATIVE iOS TOGGLE SWITCH */
+/* Toggle Switch phẳng */
 .ios-switch {
     position: relative;
     display: inline-block;
-    width: 46px;
-    height: 27px;
+    width: 48px;
+    height: 28px;
     flex-shrink: 0;
 }
 .ios-switch input {
@@ -332,120 +278,87 @@ body {
     position: absolute;
     cursor: pointer;
     inset: 0;
-    background-color: #E5E7EB;
-    transition: 0.25s;
-    border-radius: 34px;
+    background-color: #D1D5DB;
+    transition: 0.2s;
+    border-radius: 28px;
 }
 .ios-slider::before {
     position: absolute;
     content: "";
-    height: 23px;
-    width: 23px;
-    left: 2px;
-    bottom: 2px;
-    background-color: white;
-    transition: 0.25s;
+    height: 22px;
+    width: 22px;
+    left: 3px;
+    bottom: 3px;
+    background-color: #FFFFFF;
+    transition: 0.2s;
     border-radius: 50%;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.18);
 }
 .ios-switch input:checked + .ios-slider {
     background-color: var(--gen-red);
 }
 .ios-switch input:checked + .ios-slider::before {
-    transform: translateX(19px);
+    transform: translateX(20px);
 }
 
-/* 6. BANK QUICK CHIPS (Thanh cuộn logo/tên ngân hàng kiểu Ví MoMo / Banking) */
-.bank-chip-rail {
-    display: flex;
-    gap: 7px;
-    overflow-x: auto;
-    scrollbar-width: none;
-    padding: 4px 0 2px;
-}
-.bank-chip-rail::-webkit-scrollbar {
-    display: none;
-}
-.bank-chip {
-    flex-shrink: 0;
-    padding: 6px 12px;
-    border-radius: 999px;
-    background: #F3F4F6;
-    border: 1px solid #E5E7EB;
-    font-size: 12px;
-    font-weight: 700;
-    color: #374151;
-    cursor: pointer;
-    transition: all 0.15s ease;
-}
-.bank-chip.active,
-.bank-chip:active {
-    background: var(--gen-red-soft);
-    border-color: var(--gen-red);
-    color: var(--gen-red);
-}
-
-/* 7. KHUNG THẺ CCCD 2 MẶT TRONG MỤC ĐÍNH KÈM */
+/* Khung đính kèm CCCD phẳng rộng */
 .id-card-slot {
-    background: #FAFAFC;
-    border: 1.5px dashed #D1D5DB;
-    border-radius: 16px;
-    padding: 12px;
-    transition: all 0.2s ease;
+    background-color: #F9FAFB;
+    border: 1.5px dashed var(--gen-border);
+    border-radius: 12px;
+    padding: 16px;
 }
+
 .id-card-slot.border-green-500 {
     border-style: solid;
     border-color: #10B981;
-    background: #F0FDF4;
-}
-.id-card-slot.border-red-500 {
-    border-color: #EF4444;
-    background: #FEF2F2;
+    background-color: #F0FDF4;
 }
 
-/* 8. STICKY BOTTOM ACTION BAR (Thanh nút cố định đáy màn hình chuẩn Native App) */
-.native-bottom-bar {
+.id-card-slot.border-red-500 {
+    border-color: #EF4444;
+    background-color: #FEF2F2;
+}
+
+/* Thanh nút gửi cố định đáy màn hình phẳng */
+.flat-bottom-bar {
     position: sticky;
     bottom: 0;
     z-index: 35;
-    background: rgba(255, 255, 255, 0.92);
-    backdrop-filter: saturate(180%) blur(18px);
-    -webkit-backdrop-filter: saturate(180%) blur(18px);
-    border-top: 1px solid rgba(0, 0, 0, 0.07);
+    background-color: var(--gen-surface);
+    border-top: 1px solid var(--gen-line);
     padding: 12px 16px calc(12px + env(safe-area-inset-bottom, 0px));
 }
 
-.native-submit-btn {
+.flat-submit-btn {
     width: 100%;
-    background: linear-gradient(135deg, #D31E19 0%, #9E120E 100%);
+    height: 52px;
+    background-color: var(--gen-red);
     color: #FFFFFF;
     border: none;
-    border-radius: 15px;
-    padding: 15px 18px;
+    border-radius: 10px;
     font-size: 15px;
     font-weight: 800;
-    letter-spacing: 0.01em;
     display: flex;
     align-items: center;
     justify-content: center;
     gap: 8px;
-    box-shadow: 0 8px 20px -4px rgba(194, 27, 23, 0.48);
-    transition: transform 0.14s ease, opacity 0.15s ease;
     cursor: pointer;
-}
-.native-submit-btn:active {
-    transform: scale(0.98);
+    transition: background-color 0.15s ease;
 }
 
-/* 9. CAMERA SCANNER OVERLAY */
+.flat-submit-btn:active {
+    background-color: var(--gen-red-dark);
+}
+
+/* Camera Scanner Overlay */
 .cccd-scanner-frame {
     width: 88%;
-    max-width: 370px;
+    max-width: 380px;
     aspect-ratio: 1.585 / 1;
     position: relative;
-    border-radius: 16px;
+    border-radius: 14px;
     box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.72);
-    border: 1.5px solid rgba(255, 255, 255, 0.4);
+    border: 1.5px solid rgba(255, 255, 255, 0.45);
     overflow: hidden;
 }
 
@@ -457,10 +370,10 @@ body {
     border-style: solid;
     z-index: 10;
 }
-.corner-tl { top: -2px; left: -2px; border-width: 4px 0 0 4px; border-top-left-radius: 13px; }
-.corner-tr { top: -2px; right: -2px; border-width: 4px 4px 0 0; border-top-right-radius: 13px; }
-.corner-bl { bottom: -2px; left: -2px; border-width: 0 0 4px 4px; border-bottom-left-radius: 13px; }
-.corner-br { bottom: -2px; right: -2px; border-width: 0 4px 4px 0; border-bottom-right-radius: 13px; }
+.corner-tl { top: -2px; left: -2px; border-width: 4px 0 0 4px; border-top-left-radius: 12px; }
+.corner-tr { top: -2px; right: -2px; border-width: 4px 4px 0 0; border-top-right-radius: 12px; }
+.corner-bl { bottom: -2px; left: -2px; border-width: 0 0 4px 4px; border-bottom-left-radius: 12px; }
+.corner-br { bottom: -2px; right: -2px; border-width: 0 4px 4px 0; border-bottom-right-radius: 12px; }
 
 .laser-scan-line {
     position: absolute;
@@ -468,7 +381,6 @@ body {
     right: 0;
     height: 2px;
     background: linear-gradient(90deg, transparent 0%, #EF4444 25%, #FCA5A5 50%, #EF4444 75%, transparent 100%);
-    box-shadow: 0 0 12px 2px rgba(239, 68, 68, 0.85);
     animation: scanMove 2.2s ease-in-out infinite;
 }
 
@@ -487,15 +399,10 @@ body {
     display: flex;
     align-items: center;
     justify-content: center;
-    transition: transform 0.15s ease;
-}
-.shutter-btn:active {
-    transform: scale(0.92);
 }
 .shutter-btn-inner {
     width: 54px;
     height: 54px;
     border-radius: 9999px;
     background-color: #EF4444;
-    box-shadow: 0 2px 10px rgba(239, 68, 68, 0.6);
 }
