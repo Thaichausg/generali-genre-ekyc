@@ -205,6 +205,7 @@ function processFormSubmission(payload) {
       backImageUrl: backImageUrl,
       emailSent: emailSent,
       emailError: LAST_EMAIL_ERROR
+    };
   } finally {
     lock.releaseLock();
   }
