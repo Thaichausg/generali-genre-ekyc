@@ -577,6 +577,11 @@ function downloadLastSubmissionCSV() {
     URL.revokeObjectURL(url);
 }
 
+function confirmResetForm() {
+    resetForNewRegistration();
+    showToast('Đã xóa trắng để tạo mới', 'info');
+}
+
 function resetForNewRegistration() {
     localStorage.removeItem('GENRE_FORM_DRAFT');
     document.getElementById('genreRegistrationForm').reset();

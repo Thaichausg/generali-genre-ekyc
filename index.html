@@ -394,9 +394,14 @@
 
         <!-- THANH GỬI HỒ SƠ PHẲNG ĐÁY MÀN HÌNH -->
         <div id="bottomActionBar" class="flat-bottom-bar">
-            <button type="button" id="btnSubmitForm" onclick="submitGenreForm()" class="flat-submit-btn">
-                <span>Gửi Hồ Sơ Đăng Ký</span>
-            </button>
+            <div class="flex items-center gap-3">
+                <button type="button" onclick="confirmResetForm()" class="flat-reset-btn">
+                    <span>Tạo mới</span>
+                </button>
+                <button type="button" id="btnSubmitForm" onclick="submitGenreForm()" class="flat-submit-btn flex-1">
+                    <span>Gửi Hồ Sơ Đăng Ký</span>
+                </button>
+            </div>
         </div>
 
         <!-- MÀN HÌNH HOÀN TẤT -->
