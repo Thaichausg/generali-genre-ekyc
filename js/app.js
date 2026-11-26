@@ -9,7 +9,7 @@ const GENRE_CONFIG = {
     SPREADSHEET_ID: '1MRgOcAVzDqfZy4VbH2Xt_noqCaGX6HWBoFZY5ydnAWY',
     SHEET_NAME: 'Danh_Sach_Tong_Hop',
     LIVE_APP_URL: 'https://generali-genre-ekyc.vercel.app/',
-    DEFAULT_SCRIPT_URL: ''
+    DEFAULT_SCRIPT_URL: 'https://script.google.com/macros/s/AKfycbwshMtmAeufWH2gJ53AhmvuhkipbHwxzWsAITU7fnrtNzQj9B0VyhkNWi6YIfnK4i3Fgw/exec'
 };
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -556,16 +556,26 @@ function downloadLastSubmissionCSV() {
     URL.revokeObjectURL(url);
 }
 
+function confirmResetForm() {
+    resetForNewRegistration();
+    showToast('Đã làm mới toàn bộ form để tạo hồ sơ mới!', 'info');
+}
+
 function resetForNewRegistration() {
+    localStorage.removeItem('GENRE_FORM_DRAFT');
     document.getElementById('genreRegistrationForm').reset();
+    document.getElementById('oldIdSection')?.classList.add('hidden');
     selectSegmented('danhXung', 'Anh');
     selectSegmented('gioiTinh', 'Nam');
     selectSegmented('tinhTrangHonNhan', 'Độc thân');
     selectSegmented('loaiGiayTo', 'Căn cước Công dân');
     document.querySelectorAll('#popularBankChips .bank-chip').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.native-cell.has-error').forEach(c => c.classList.remove('has-error'));
+    document.querySelectorAll('.field-error-msg').forEach(e => e.classList.add('hidden'));
 
     window.cccdScanner.removeImage('front');
     window.cccdScanner.removeImage('back');
+    window.cccdScanner.extractedData = {};
     document.getElementById('scanExtractResultBanner')?.classList.add('hidden');
     const tenTKInput = document.getElementById('tenTaiKhoan');
     if (tenTKInput) delete tenTKInput.dataset.manualEdited;

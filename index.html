@@ -56,12 +56,21 @@
                     </div>
                 </div>
 
-                <!-- Nút Cài đặt Sheet / QR -->
-                <button type="button" onclick="toggleSettingsModal(true)" class="h-8 px-2.5 rounded-full bg-gray-100 active:bg-gray-200 text-gray-700 text-[11px] font-bold flex items-center gap-1.5 transition">
-                    <span id="sheetConnectionStatus" class="flex items-center">
-                        <span class="w-2 h-2 rounded-full bg-amber-400 inline-block mr-1.5"></span>Sheet
-                    </span>
-                </button>
+                <!-- Cụm nút Tạo mới (Reset) & Cài đặt Sheet / QR -->
+                <div class="flex items-center gap-1.5">
+                    <button type="button" onclick="confirmResetForm()" class="h-8 px-2.5 rounded-full bg-red-50 active:bg-red-100 text-[#C21B17] text-[11px] font-bold flex items-center gap-1 transition" title="Xóa trắng để tạo hồ sơ mới">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.3" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                        </svg>
+                        <span>Tạo mới</span>
+                    </button>
+
+                    <button type="button" onclick="toggleSettingsModal(true)" class="h-8 px-2.5 rounded-full bg-gray-100 active:bg-gray-200 text-gray-700 text-[11px] font-bold flex items-center gap-1.5 transition">
+                        <span id="sheetConnectionStatus" class="flex items-center">
+                            <span class="w-2 h-2 rounded-full bg-amber-400 inline-block mr-1.5"></span>Sheet
+                        </span>
+                    </button>
+                </div>
             </div>
 
             <!-- Thanh Pill chuyển nhanh 4 vùng -->
@@ -525,14 +534,23 @@
             </form>
         </main>
 
-        <!-- 3. THANH NÚT GỬI CỐ ĐỊNH ĐÁY MÀN HÌNH (STICKY NATIVE BOTTOM BAR) -->
+        <!-- 3. THANH NÚT GỬI & RESET CỐ ĐỊNH ĐÁY MÀN HÌNH (STICKY NATIVE BOTTOM BAR) -->
         <div id="bottomActionBar" class="native-bottom-bar">
-            <button type="button" id="btnSubmitForm" onclick="submitGenreForm()" class="native-submit-btn">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.4" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
-                </svg>
-                <span>Gửi Hồ Sơ Đăng Ký</span>
-            </button>
+            <div class="flex items-center gap-2.5">
+                <button type="button" onclick="confirmResetForm()" class="shrink-0 h-[52px] px-4 rounded-[15px] bg-gray-100 active:bg-gray-200 text-gray-700 font-bold text-xs flex items-center justify-center gap-1.5 border border-gray-200/80 transition">
+                    <svg class="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                    </svg>
+                    <span>Làm mới</span>
+                </button>
+
+                <button type="button" id="btnSubmitForm" onclick="submitGenreForm()" class="native-submit-btn flex-1">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.4" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+                    </svg>
+                    <span>Gửi Hồ Sơ Đăng Ký</span>
+                </button>
+            </div>
         </div>
 
         <!-- =========================================================
