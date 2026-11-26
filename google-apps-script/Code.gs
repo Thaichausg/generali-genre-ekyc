@@ -40,7 +40,8 @@ function doPost(e) {
         rowNumber: result.rowNumber,
         frontImageUrl: result.frontImageUrl,
         backImageUrl: result.backImageUrl,
-        emailSent: result.emailSent
+        emailSent: result.emailSent,
+        emailError: result.emailError
       }))
       .setMimeType(ContentService.MimeType.JSON);
   } catch (err) {
@@ -202,8 +203,8 @@ function processFormSubmission(payload) {
       rowNumber: targetRow,
       frontImageUrl: frontImageUrl,
       backImageUrl: backImageUrl,
-      emailSent: emailSent
-    };
+      emailSent: emailSent,
+      emailError: LAST_EMAIL_ERROR
   } finally {
     lock.releaseLock();
   }
@@ -309,12 +310,16 @@ function sendNewApplicantNotificationEmail(f, rowNumber, frontImageUrl, backImag
       name: 'Hệ Thống Đăng Ký GenRe - Generali'
     });
 
+    LAST_EMAIL_ERROR = '';
     return true;
   } catch (err) {
+    LAST_EMAIL_ERROR = String(err);
     Logger.log('Lỗi gửi email thông báo: ' + err);
     return false;
   }
 }
+
+var LAST_EMAIL_ERROR = '';
 
 /**
  * Bấm Chạy (Run) hàm này 1 lần trong Apps Script để:
