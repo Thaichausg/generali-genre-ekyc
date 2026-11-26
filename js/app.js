@@ -9,7 +9,7 @@ const GENRE_CONFIG = {
     SHEET_NAME: 'Danh_Sach_Tong_Hop',
     NOTIFY_EMAIL: 'huynhthaichau.generali@gmail.com',
     LIVE_APP_URL: 'https://generali-genre-ekyc.vercel.app/',
-    DEFAULT_SCRIPT_URL: 'https://script.google.com/macros/s/AKfycbwshMtmAeufWH2gJ53AhmvuhkipbHwxzWsAITU7fnrtNzQj9B0VyhkNWi6YIfnK4i3Fgw/exec'
+    DEFAULT_SCRIPT_URL: 'https://script.google.com/macros/s/AKfycby0BFa9lAj3bNZ3jt4AODULBOAedPcyvOQmydJDV_lkiP0WhDI14e10-0nX99W0oKyxHw/exec'
 };
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -871,7 +871,8 @@ function restoreDraftData() {
 function getActiveScriptUrl() {
     const urlParam = new URLSearchParams(window.location.search).get('api');
     if (urlParam) return urlParam;
-    return localStorage.getItem('GENRE_GAS_URL') || GENRE_CONFIG.DEFAULT_SCRIPT_URL;
+    try { localStorage.removeItem('GENRE_GAS_URL'); } catch (e) {}
+    return GENRE_CONFIG.DEFAULT_SCRIPT_URL;
 }
 
 function showToast(message, type = 'info') {
