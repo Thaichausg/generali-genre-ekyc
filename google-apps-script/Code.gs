@@ -3,36 +3,39 @@
  * GOOGLE APPS SCRIPT KẾT NỐI WEB FORM MOBILE VỚI GOOGLE SHEETS GENRE (GENERALI)
  * File Google Sheets ID: 1MRgOcAVzDqfZy4VbH2Xt_noqCaGX6HWBoFZY5ydnAWY
  * Tên Sheet: Danh_Sach_Tong_Hop
+ * Email nhận thông báo hồ sơ mới: huynhthaichau.generali@gmail.com
  *
  * Chức năng:
  * 1. Nhận toàn bộ 32 trường thông tin từ Web Form Mobile (Cột B -> Cột AG)
  * 2. Tự động tìm dòng trống tiếp theo từ Dòng 4 trở đi (bảo toàn công thức cột A - STT)
  * 3. Tự động lưu 2 ảnh chụp Scan CCCD (Mặt trước & Mặt sau) vào Google Drive
- * 4. Ghi trạng thái "Đã tải lên" vào cột AF & AG (đúng chuẩn Data Validation của Sheet)
- *    đồng thời gắn đường link (Hyperlink + Ghi chú Note) để Quản lý bấm vào xem ảnh CCCD ngay!
+ * 4. Ghi trạng thái "Đã tải lên" vào cột AF & AG kèm đường link xem ảnh trực tiếp
+ * 5. Tự động gửi Email thông báo hồ sơ CTV GenRe mới về huynhthaichau.generali@gmail.com
  * ============================================================================
  */
 
 const SPREADSHEET_ID = '1MRgOcAVzDqfZy4VbH2Xt_noqCaGX6HWBoFZY5ydnAWY';
 const TARGET_SHEET_NAME = 'Danh_Sach_Tong_Hop';
 const DRIVE_FOLDER_NAME = 'GENRE_2026_ANH_CCCD_KHACH_HANG';
+const ADMIN_NOTIFY_EMAIL = 'huynhthaichau.generali@gmail.com';
 
 /**
- * Hỗ trợ mở trực tiếp thông báo trạng thái khi truy cập link Web App bằng trình duyệt
+ * Hỗ trợ kiểm tra trạng thái hoạt động của Web App
  */
 function doGet(e) {
   return ContentService
     .createTextOutput(JSON.stringify({
       status: 'ACTIVE',
-      message: 'API Kết nối Web Form Đăng ký Hồ sơ GENRE (Generali) đang hoạt động!',
+      message: 'API Kết nối Đăng Ký Thông Tin Cộng Tác Viên GenRe đang hoạt động!',
       spreadsheetId: SPREADSHEET_ID,
-      sheetName: TARGET_SHEET_NAME
+      sheetName: TARGET_SHEET_NAME,
+      notifyEmail: ADMIN_NOTIFY_EMAIL
     }))
     .setMimeType(ContentService.MimeType.JSON);
 }
 
 /**
- * Nhận dữ liệu POST từ Web Form Mobile khi khách hàng bấm "GỬI HỒ SƠ ĐĂNG KÝ"
+ * Nhận dữ liệu POST từ Web Form khi Cộng tác viên GenRe bấm "Gửi Hồ Sơ Đăng Ký"
  */
 function doPost(e) {
   try {
@@ -48,7 +51,8 @@ function doPost(e) {
         success: true,
         rowNumber: result.rowNumber,
         frontImageUrl: result.frontImageUrl,
-        backImageUrl: result.backImageUrl
+        backImageUrl: result.backImageUrl,
+        emailSent: result.emailSent
       }))
       .setMimeType(ContentService.MimeType.JSON);
   } catch (err) {
@@ -62,7 +66,7 @@ function doPost(e) {
 }
 
 /**
- * Xử lý ghi dữ liệu vào đúng các cột B -> AG và lưu 2 mặt ảnh CCCD vào Google Drive
+ * Xử lý ghi dữ liệu vào cột B -> AG, lưu 2 mặt ảnh CCCD và gửi Gmail thông báo
  */
 function processFormSubmission(payload) {
   const lock = LockService.getScriptLock();
@@ -94,7 +98,7 @@ function processFormSubmission(payload) {
       );
     }
 
-    // 2. Tìm dòng trống đầu tiên tính từ Dòng 4 trở đi dựa vào Cột C (Họ*) và Cột L (CMND/CCCD*)
+    // 2. Tìm dòng trống đầu tiên tính từ Dòng 4 trở đi dựa vào Cột C (Họ*)
     const maxRows = Math.max(sheet.getLastRow(), 33);
     const colCValues = sheet.getRange(4, 3, maxRows - 3 + 1, 1).getValues();
     let targetRow = 4;
@@ -117,46 +121,45 @@ function processFormSubmission(payload) {
       sttCell.setFormula(`=IF(COUNTA(C${targetRow}:E${targetRow})>0, ROW()-3, "")`);
     }
 
-    // 4. Chuẩn bị mảng 32 cột từ Cột B (Cột số 2) đến Cột AG (Cột số 33)
+    // 4. Chuẩn bị mảng 32 cột từ Cột B (2) đến Cột AG (33)
     const rowValues = [
-      f.danhXung || '',                         // B (2): Danh xưng*
-      f.ho || '',                               // C (3): Họ*
-      f.tenDem || '',                           // D (4): Tên đệm
-      f.ten || '',                              // E (5): Tên*
-      f.ngaySinh || '',                         // F (6): Ngày sinh*
-      f.gioiTinh || '',                         // G (7): Giới tính*
-      f.noiSinh || '',                          // H (8): Nơi sinh*
-      f.tinhTrangHonNhan || '',                 // I (9): Tình trạng hôn nhân*
-      f.quocTich || 'Việt Nam',                 // J (10): Quốc tịch*
-      f.loaiGiayTo || 'Căn cước Công dân',      // K (11): Loại giấy tờ*
-      f.soGiayTo ? `'${f.soGiayTo}` : '',       // L (12): CMND/CCCD* (Thêm dấu ' để giữ số 0 ở đầu)
-      f.noiCap || '',                           // M (13): Nơi cấp CMND/CCCD*
-      f.ngayCap || '',                          // N (14): Ngày cấp CMND/CCCD*
-      f.loaiGiayToCu || '',                     // O (15): Loại giấy tờ (cũ)
-      f.soGiayToCu ? `'${f.soGiayToCu}` : '',   // P (16): CMND/CCCD Cũ
-      f.noiCapCu || '',                         // Q (17): Nơi cấp CMND/CCCD Cũ
-      f.ngayCapCu || '',                        // R (18): Ngày cấp CMND/CCCD Cũ
-      f.thanhPhoTinh || '',                     // S (19): Thành phố/ Tỉnh*
-      f.phuongXa || '',                         // T (20): Phường/ Xã*
-      f.soNhaTenDuong || '',                    // U (21): Số nhà, tên đường*
-      f.email || '',                            // V (22): Email/ thư điện tử*
-      f.dienThoai ? `'${f.dienThoai}` : '',     // W (23): Điện thoại di động* (Giữ số 0 ở đầu)
-      f.dongYNhanThongTin || 'Đồng ý',          // X (24): Đồng ý nhận thông tin từ Generali Việt Nam*
-      f.soTaiKhoan ? `'${f.soTaiKhoan}` : '',   // Y (25): Số tài khoản*
-      f.tenTaiKhoan || '',                      // Z (26): Tên tài khoản*
-      f.maSoNganHang || '',                     // AA (27): Mã số ngân hàng*
-      f.tenNganHang || '',                      // AB (28): Tên ngân hàng
-      f.maSoChiNhanh || '',                     // AC (29): Mã số chi nhánh/ PGD*
-      f.tenChiNhanh || '',                      // AD (30): Tên Chi nhánh/ PGD
-      f.diaChiChiNhanh || '',                   // AE (31): Địa chỉ Chi nhánh
-      frontImageUrl ? 'Đã tải lên' : (f.cccdMatTruocStatus || 'Chưa đính kèm'), // AF (32): CMND/CCCD* - Mặt trước
-      backImageUrl ? 'Đã tải lên' : (f.cccdMatSauStatus || 'Chưa đính kèm')     // AG (33): CMND/CCCD* - Mặt sau
+      f.danhXung || '',
+      f.ho || '',
+      f.tenDem || '',
+      f.ten || '',
+      f.ngaySinh || '',
+      f.gioiTinh || '',
+      f.noiSinh || '',
+      f.tinhTrangHonNhan || '',
+      f.quocTich || 'Việt Nam',
+      f.loaiGiayTo || 'Căn cước Công dân',
+      f.soGiayTo ? `'${f.soGiayTo}` : '',
+      f.noiCap || '',
+      f.ngayCap || '',
+      f.loaiGiayToCu || '',
+      f.soGiayToCu ? `'${f.soGiayToCu}` : '',
+      f.noiCapCu || '',
+      f.ngayCapCu || '',
+      f.thanhPhoTinh || '',
+      f.phuongXa || '',
+      f.soNhaTenDuong || '',
+      f.email || '',
+      f.dienThoai ? `'${f.dienThoai}` : '',
+      f.dongYNhanThongTin || 'Đồng ý',
+      f.soTaiKhoan ? `'${f.soTaiKhoan}` : '',
+      f.tenTaiKhoan || '',
+      f.maSoNganHang || '',
+      f.tenNganHang || '',
+      f.maSoChiNhanh || '',
+      f.tenChiNhanh || '',
+      f.diaChiChiNhanh || '',
+      frontImageUrl ? 'Đã tải lên' : (f.cccdMatTruocStatus || 'Chưa đính kèm'),
+      backImageUrl ? 'Đã tải lên' : (f.cccdMatSauStatus || 'Chưa đính kèm')
     ];
 
-    // Ghi dữ liệu vào Cột B -> AG của dòng targetRow
     sheet.getRange(targetRow, 2, 1, rowValues.length).setValues([rowValues]);
 
-    // 5. Gắn Link bấm trực tiếp vào chữ "Đã tải lên" ở cột AF (32) và AG (33) để vừa khớp Data Validation vừa xem được hình
+    // 5. Gắn Link bấm trực tiếp vào chữ "Đã tải lên" ở cột AF (32) và AG (33)
     if (frontImageUrl) {
       const cellAF = sheet.getRange(targetRow, 32);
       const richAF = SpreadsheetApp.newRichTextValue()
@@ -177,14 +180,161 @@ function processFormSubmission(payload) {
       cellAG.setNote('Link ảnh CCCD Mặt sau:\n' + backImageUrl);
     }
 
+    // 6. Gửi Email thông báo về huynhthaichau.generali@gmail.com
+    const emailSent = sendNewApplicantNotificationEmail(
+      f,
+      targetRow,
+      frontImageUrl,
+      backImageUrl,
+      payload.notifyEmail || ADMIN_NOTIFY_EMAIL
+    );
+
     return {
       rowNumber: targetRow,
       frontImageUrl: frontImageUrl,
-      backImageUrl: backImageUrl
+      backImageUrl: backImageUrl,
+      emailSent: emailSent
     };
   } finally {
     lock.releaseLock();
   }
+}
+
+/**
+ * Gửi Gmail thông báo tóm tắt thông tin Cộng tác viên / Ứng viên GenRe vừa đăng ký
+ */
+function sendNewApplicantNotificationEmail(f, rowNumber, frontImageUrl, backImageUrl, recipientEmail) {
+  try {
+    const toEmail = recipientEmail || ADMIN_NOTIFY_EMAIL;
+    const fullName = [f.ho, f.tenDem, f.ten].filter(Boolean).join(' ').trim() || 'Chưa rõ tên';
+    const stt = Math.max(1, rowNumber - 3);
+    const sheetUrl = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/edit`;
+    const submittedTime = Utilities.formatDate(new Date(), 'Asia/Ho_Chi_Minh', 'HH:mm - dd/MM/yyyy');
+    const addressStr = [f.soNhaTenDuong, f.phuongXa, f.thanhPhoTinh].filter(Boolean).join(', ');
+    const bankStr = [f.soTaiKhoan, f.tenTaiKhoan, f.tenNganHang || f.maSoNganHang].filter(Boolean).join(' — ');
+
+    const subject = `[GenRe Mới #${stt}] Đăng ký CTV GenRe: ${fullName} - SĐT: ${f.dienThoai || ''}`;
+
+    const plainBody = [
+      `THÔNG BÁO HỒ SƠ ĐĂNG KÝ CỘNG TÁC VIÊN GENRE MỚI`,
+      `Thời gian đăng ký: ${submittedTime}`,
+      `--------------------------------------------------`,
+      `• Họ và tên CTV / Ứng viên: ${f.danhXung ? f.danhXung + ' ' : ''}${fullName}`,
+      `• Ngày sinh / Giới tính: ${f.ngaySinh || ''} (${f.gioiTinh || ''})`,
+      `• Số CCCD: ${f.soGiayTo || ''} (Cấp ngày: ${f.ngayCap || ''})`,
+      `• Điện thoại: ${f.dienThoai || ''}`,
+      `• Email: ${f.email || ''}`,
+      `• Địa chỉ liên lạc: ${addressStr}`,
+      `• Tài khoản ngân hàng: ${bankStr}`,
+      `• Dòng lưu trên Google Sheet: Dòng ${rowNumber} (STT #${stt})`,
+      ``,
+      `• Mở bảng Google Sheet: ${sheetUrl}`,
+      frontImageUrl ? `• Ảnh CCCD Mặt trước: ${frontImageUrl}` : '',
+      backImageUrl ? `• Ảnh CCCD Mặt sau: ${backImageUrl}` : ''
+    ].filter(Boolean).join('\n');
+
+    const htmlBody = `
+      <div style="font-family: Arial, sans-serif; max-width: 580px; color: #111827; border: 1px solid #E5E7EB; border-radius: 10px; overflow: hidden;">
+        <div style="background-color: #C21B17; color: #FFFFFF; padding: 16px 20px;">
+          <div style="font-size: 11px; font-weight: bold; letter-spacing: 1px; text-transform: uppercase; opacity: 0.9;">GENERALI VIỆT NAM • HỒ SƠ GENRE</div>
+          <h2 style="margin: 4px 0 0 0; font-size: 17px;">Có Cộng Tác Viên / Ứng Viên GenRe Mới Đăng Ký</h2>
+        </div>
+
+        <div style="padding: 20px;">
+          <p style="margin: 0 0 14px 0; font-size: 14px; color: #374151;">
+            Hệ thống vừa ghi nhận hồ sơ đăng ký mới lúc <strong>${submittedTime}</strong> (STT <strong>#${stt}</strong> — Dòng <strong>${rowNumber}</strong>):
+          </p>
+
+          <table style="width: 100%; border-collapse: collapse; font-size: 14px;">
+            <tr>
+              <td style="padding: 8px 0; border-bottom: 1px solid #F3F4F6; color: #6B7280; width: 38%;">CTV / Ứng viên:</td>
+              <td style="padding: 8px 0; border-bottom: 1px solid #F3F4F6; font-weight: bold; color: #111827;">${f.danhXung ? f.danhXung + ' ' : ''}${fullName}</td>
+            </tr>
+            <tr>
+              <td style="padding: 8px 0; border-bottom: 1px solid #F3F4F6; color: #6B7280;">Ngày sinh / Giới tính:</td>
+              <td style="padding: 8px 0; border-bottom: 1px solid #F3F4F6;">${f.ngaySinh || '---'} (${f.gioiTinh || '---'})</td>
+            </tr>
+            <tr>
+              <td style="padding: 8px 0; border-bottom: 1px solid #F3F4F6; color: #6B7280;">Số CCCD:</td>
+              <td style="padding: 8px 0; border-bottom: 1px solid #F3F4F6; font-weight: bold;">${f.soGiayTo || '---'} <span style="font-weight: normal; color: #6B7280;">(Cấp: ${f.ngayCap || '---'})</span></td>
+            </tr>
+            <tr>
+              <td style="padding: 8px 0; border-bottom: 1px solid #F3F4F6; color: #6B7280;">Điện thoại:</td>
+              <td style="padding: 8px 0; border-bottom: 1px solid #F3F4F6; font-weight: bold; color: #C21B17;">${f.dienThoai || '---'}</td>
+            </tr>
+            <tr>
+              <td style="padding: 8px 0; border-bottom: 1px solid #F3F4F6; color: #6B7280;">Email:</td>
+              <td style="padding: 8px 0; border-bottom: 1px solid #F3F4F6;">${f.email || '---'}</td>
+            </tr>
+            <tr>
+              <td style="padding: 8px 0; border-bottom: 1px solid #F3F4F6; color: #6B7280;">Địa chỉ liên lạc:</td>
+              <td style="padding: 8px 0; border-bottom: 1px solid #F3F4F6;">${addressStr || '---'}</td>
+            </tr>
+            <tr>
+              <td style="padding: 8px 0; border-bottom: 1px solid #F3F4F6; color: #6B7280;">Tài khoản NH:</td>
+              <td style="padding: 8px 0; border-bottom: 1px solid #F3F4F6;">${bankStr || '---'}</td>
+            </tr>
+            <tr>
+              <td style="padding: 8px 0; color: #6B7280;">Ảnh CCCD đính kèm:</td>
+              <td style="padding: 8px 0;">
+                ${frontImageUrl ? `<a href="${frontImageUrl}" target="_blank" style="color: #C21B17; font-weight: bold; text-decoration: none; margin-right: 12px;">[Xem Mặt Trước]</a>` : 'Chưa có'}
+                ${backImageUrl ? `<a href="${backImageUrl}" target="_blank" style="color: #C21B17; font-weight: bold; text-decoration: none;">[Xem Mặt Sau]</a>` : ''}
+              </td>
+            </tr>
+          </table>
+
+          <div style="margin-top: 18px;">
+            <a href="${sheetUrl}" target="_blank" style="display: inline-block; background-color: #C21B17; color: #FFFFFF; font-weight: bold; font-size: 13px; padding: 10px 18px; border-radius: 6px; text-decoration: none;">
+              Mở Bảng Tổng Hợp Google Sheets
+            </a>
+          </div>
+        </div>
+      </div>
+    `;
+
+    MailApp.sendEmail({
+      to: toEmail,
+      subject: subject,
+      body: plainBody,
+      htmlBody: htmlBody,
+      name: 'Hệ Thống Đăng Ký GenRe - Generali'
+    });
+
+    return true;
+  } catch (err) {
+    Logger.log('Lỗi gửi email thông báo: ' + err);
+    return false;
+  }
+}
+
+/**
+ * Chạy hàm này 1 lần trong Apps Script để cấp quyền gửi Email (MailApp) & gửi thử 1 email kiểm tra
+ */
+function testSendNotificationEmail() {
+  sendNewApplicantNotificationEmail(
+    {
+      danhXung: 'Anh',
+      ho: 'NGUYỄN',
+      tenDem: 'VĂN',
+      ten: 'AN',
+      ngaySinh: '15/08/1995',
+      gioiTinh: 'Nam',
+      soGiayTo: '079095001234',
+      ngayCap: '10/05/2022',
+      dienThoai: '0901234567',
+      email: 'nguyenvanan@gmail.com',
+      soNhaTenDuong: '43-45 Tú Xương',
+      phuongXa: 'Phường Xuân Hòa',
+      thanhPhoTinh: 'Thành phố Hồ Chí Minh',
+      soTaiKhoan: '0071001234567',
+      tenTaiKhoan: 'NGUYEN VAN AN',
+      tenNganHang: 'Vietcombank'
+    },
+    4,
+    '',
+    '',
+    ADMIN_NOTIFY_EMAIL
+  );
 }
 
 /**
@@ -204,7 +354,6 @@ function saveBase64ImageToDrive(base64DataUrl, fileName) {
     const blob = Utilities.newBlob(decodedBytes, contentType, fileName);
     const file = folder.createFile(blob);
 
-    // Cho phép người có link xem được ảnh CCCD từ Google Sheet
     file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
     return file.getUrl();
   } catch (err) {

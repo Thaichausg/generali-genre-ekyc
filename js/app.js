@@ -7,6 +7,7 @@
 const GENRE_CONFIG = {
     SPREADSHEET_ID: '1MRgOcAVzDqfZy4VbH2Xt_noqCaGX6HWBoFZY5ydnAWY',
     SHEET_NAME: 'Danh_Sach_Tong_Hop',
+    NOTIFY_EMAIL: 'huynhthaichau.generali@gmail.com',
     LIVE_APP_URL: 'https://generali-genre-ekyc.vercel.app/',
     DEFAULT_SCRIPT_URL: 'https://script.google.com/macros/s/AKfycbwshMtmAeufWH2gJ53AhmvuhkipbHwxzWsAITU7fnrtNzQj9B0VyhkNWi6YIfnK4i3Fgw/exec'
 };
@@ -644,6 +645,7 @@ function collectFormPayload() {
     return {
         spreadsheetId: GENRE_CONFIG.SPREADSHEET_ID,
         sheetName: GENRE_CONFIG.SHEET_NAME,
+        notifyEmail: GENRE_CONFIG.NOTIFY_EMAIL,
         submittedAt: new Date().toISOString(),
         fields: {
             danhXung: val('danhXung'),
