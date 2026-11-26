@@ -364,6 +364,136 @@ class VNCCCDRecognizer {
     }
 
     /**
+     * Bộ lọc chuyên biệt cho MẶT SAU CCCD:
+     * Dùng kênh Đỏ (Red Channel Dominance) để XÓA SẠCH CON DẤU MỘC ĐỎ của Cục Cảnh sát / Bộ Công An
+     * thường đóng đè lên dòng "Ngày, tháng, năm / Date, month, year: DD/MM/YYYY",
+     * giúp chữ số Ngày cấp màu đen hiện lên sắc nét tuyệt đối trên nền trắng!
+     */
+    buildBackRedStampRemovedCanvas(sourceCanvas, targetWidth = 1850) {
+        const ratio = sourceCanvas.height / sourceCanvas.width;
+        const w = Math.min(2200, Math.max(1300, targetWidth));
+        const h = Math.max(1, Math.round(w * ratio));
+
+        const canvas = document.createElement('canvas');
+        canvas.width = w;
+        canvas.height = h;
+        const ctx = canvas.getContext('2d', { willReadFrequently: true });
+        ctx.imageSmoothingEnabled = true;
+        ctx.imageSmoothingQuality = 'high';
+        ctx.drawImage(sourceCanvas, 0, 0, w, h);
+
+        const imgData = ctx.getImageData(0, 0, w, h);
+        const d = imgData.data;
+        const numPixels = w * h;
+        const lum = new Uint8Array(numPixels);
+        const hist = new Uint32Array(256);
+
+        for (let i = 0, p = 0; i < d.length; i += 4, p++) {
+            const r = d[i];
+            const g = d[i + 1];
+            const b = d[i + 2];
+            // Mộc đỏ có R cao, G/B thấp -> dùng kênh Đỏ chủ đạo giúp mộc đỏ biến thành màu trắng nền!
+            // Trong khi chữ in Ngày cấp màu đen có R, G, B đều thấp -> giữ nguyên màu đen đậm!
+            const redDominant = Math.max(r, Math.round(0.82 * r + 0.13 * g + 0.05 * b));
+            lum[p] = redDominant;
+            hist[redDominant]++;
+        }
+
+        let lowCut = 25;
+        let highCut = 210;
+        let acc = 0;
+        const lowTarget = numPixels * 0.015;
+        const highTarget = numPixels * 0.76;
+
+        for (let v = 0; v < 256; v++) {
+            acc += hist[v];
+            if (acc <= lowTarget) lowCut = v;
+            if (acc <= highTarget) highCut = v;
+        }
+        if (highCut - lowCut < 45) {
+            lowCut = Math.max(0, lowCut - 20);
+            highCut = Math.min(255, highCut + 30);
+        }
+
+        const range = Math.max(1, highCut - lowCut);
+        const stretched = new Uint8Array(numPixels);
+        for (let p = 0; p < numPixels; p++) {
+            let norm = (lum[p] - lowCut) / range;
+            if (norm < 0) norm = 0;
+            else if (norm > 1) norm = 1;
+            stretched[p] = Math.round(Math.pow(norm, 0.85) * 255);
+        }
+
+        for (let y = 1; y < h - 1; y++) {
+            const rowOffset = y * w;
+            for (let x = 1; x < w - 1; x++) {
+                const idx = rowOffset + x;
+                const center = stretched[idx];
+                const blur = (
+                    stretched[idx - w] +
+                    stretched[idx + w] +
+                    stretched[idx - 1] +
+                    stretched[idx + 1] +
+                    center * 4
+                ) >> 3;
+                const sharp = Math.min(255, Math.max(0, center + ((center - blur) * 1.45)));
+                const outIdx = idx * 4;
+                d[outIdx] = d[outIdx + 1] = d[outIdx + 2] = sharp;
+                d[outIdx + 3] = 255;
+            }
+        }
+
+        ctx.putImageData(imgData, 0, 0);
+        return canvas;
+    }
+
+    /**
+     * Cắt phóng đại vùng chứa "Ngày, tháng, năm / Date, month, year: DD/MM/YYYY" ở Mặt sau CCCD
+     * Loại bỏ hoàn toàn 2 ô vân tay đen bên phải và 3 dòng mã MRZ bên dưới để không làm nhiễu bố cục OCR!
+     */
+    buildBackIssueDateZoneCanvas(backCleanCanvas) {
+        const w = backCleanCanvas.width;
+        const h = backCleanCanvas.height;
+
+        const sx = Math.floor(w * 0.01);
+        const sy = Math.floor(h * 0.02);
+        const sw = Math.floor(w * 0.72);
+        const sh = Math.floor(h * 0.70);
+
+        const outW = 1750;
+        const outH = Math.max(1, Math.round(outW * (sh / sw)));
+
+        const out = document.createElement('canvas');
+        out.width = outW;
+        out.height = outH;
+        const ctx = out.getContext('2d');
+        ctx.imageSmoothingEnabled = true;
+        ctx.imageSmoothingQuality = 'high';
+        ctx.drawImage(backCleanCanvas, sx, sy, sw, sh, 0, 0, outW, outH);
+        return out;
+    }
+
+    buildCenterZoomCanvas(cleanCanvas) {
+        const w = cleanCanvas.width;
+        const h = cleanCanvas.height;
+        const sx = Math.floor(w * 0.08);
+        const sy = Math.floor(h * 0.12);
+        const sw = Math.floor(w * 0.84);
+        const sh = Math.floor(h * 0.76);
+
+        const outW = 1850;
+        const outH = Math.max(1, Math.round(outW * (sh / sw)));
+        const out = document.createElement('canvas');
+        out.width = outW;
+        out.height = outH;
+        const ctx = out.getContext('2d');
+        ctx.imageSmoothingEnabled = true;
+        ctx.imageSmoothingQuality = 'high';
+        ctx.drawImage(cleanCanvas, sx, sy, sw, sh, 0, 0, outW, outH);
+        return out;
+    }
+
+    /**
      * Cắt vùng thông tin chữ Mặt trước (loại bỏ vùng ảnh chân dung bên trái để tránh nhiễu dòng chữ)
      */
     buildFrontTextZoneCanvas(cleanCanvas) {
@@ -438,12 +568,16 @@ class VNCCCDRecognizer {
 
         // Bước 2: Không có QR (ảnh mờ góc QR, CMND/CCCD cũ, hoặc Mặt sau CCCD 2021) -> Chạy OCR Tiếng Việt chuyên sâu!
         notify('Đang xử lý làm nét chữ & lọc hoa văn nền CCCD...');
-        const cleanCanvas = this.buildCleanVietnameseOCRCanvas(workingCanvas, 1750);
+        const cleanCanvas = expectedSide === 'back'
+            ? this.buildBackRedStampRemovedCanvas(workingCanvas, 1850)
+            : this.buildCleanVietnameseOCRCanvas(workingCanvas, 1750);
 
         notify('Đang nhận dạng chữ Tiếng Việt trên CCCD (0%)...');
         const worker = await this.getVietnameseOCRWorker((pct) => {
             notify(`Đang nhận dạng chữ Tiếng Việt trên CCCD (${pct}%)...`);
         });
+
+        await worker.setParameters({ tessedit_pageseg_mode: '3', preserve_interword_spaces: '1' });
 
         let combinedText = '';
         const firstPass = await worker.recognize(cleanCanvas);
@@ -453,7 +587,9 @@ class VNCCCDRecognizer {
         if (this.countValidVietnameseTokens(combinedText) < 4 && autoRotatedDeg !== 0) {
             notify('Đang tự động xoay chiều thẻ CCCD và đọc lại...');
             const flipped = this.rotateCanvas(workingCanvas, 180);
-            const cleanFlipped = this.buildCleanVietnameseOCRCanvas(flipped, 1750);
+            const cleanFlipped = expectedSide === 'back'
+                ? this.buildBackRedStampRemovedCanvas(flipped, 1850)
+                : this.buildCleanVietnameseOCRCanvas(flipped, 1750);
             const secondPass = await worker.recognize(cleanFlipped);
             const secondText = (secondPass?.data?.text || '').trim();
             if (this.countValidVietnameseTokens(secondText) > this.countValidVietnameseTokens(combinedText)) {
@@ -465,8 +601,6 @@ class VNCCCDRecognizer {
         // Tự động nhận diện ảnh này là Mặt Trước hay Mặt Sau dựa trên từ khóa & dòng MRZ
         const detectedSide = this.detectCardSideFromText(combinedText, expectedSide);
 
-        // Nếu là Mặt Trước và ảnh đã căn khung thẻ, chạy thêm vùng Text-Only (bỏ ảnh chân dung bên trái)
-        // để đọc cực chuẩn Họ tên Tiếng Việt có dấu & Địa chỉ nhiều dòng!
         let zoneText = '';
         if (detectedSide === 'front') {
             const frontZone = this.buildFrontTextZoneCanvas(cleanCanvas);
@@ -475,6 +609,36 @@ class VNCCCDRecognizer {
                 const zoneRes = await worker.recognize(frontZone);
                 zoneText = (zoneRes?.data?.text || '').trim();
             }
+        } else {
+            // MẶT SAU CCCD: Chạy chuyên sâu xóa mộc đỏ + phóng đại vùng Ngày cấp + chế độ PSM 6 & PSM 11 (Sparse Text)
+            notify('Đang đọc chính xác Ngày cấp trên Mặt sau CCCD...');
+            const backRedClean = expectedSide === 'back'
+                ? cleanCanvas
+                : this.buildBackRedStampRemovedCanvas(workingCanvas, 1850);
+
+            const backDateCrop = this.buildBackIssueDateZoneCanvas(backRedClean);
+            await worker.setParameters({ tessedit_pageseg_mode: '6', preserve_interword_spaces: '1' });
+            const backCropRes = await worker.recognize(backDateCrop);
+            const backCropText = (backCropRes?.data?.text || '').trim();
+            zoneText = backCropText;
+
+            // Kiểm tra xem đã trích xuất được Ngày cấp chưa; nếu ảnh chụp xa trên mặt bàn, phóng đại vùng trung tâm + quét PSM 11 (Sparse Text)!
+            const quickCheckDates = this.extractDatesByContext(`${backCropText}\n${combinedText}`, 'back', '');
+            if (!quickCheckDates.issueDate) {
+                await worker.setParameters({ tessedit_pageseg_mode: '11', preserve_interword_spaces: '1' });
+                const centerZoom = this.buildCenterZoomCanvas(backRedClean);
+                const sparseCenterRes = await worker.recognize(centerZoom);
+                const sparseCenterText = (sparseCenterRes?.data?.text || '').trim();
+                zoneText = `${backCropText}\n${sparseCenterText}`;
+
+                const secondCheck = this.extractDatesByContext(`${zoneText}\n${combinedText}`, 'back', '');
+                if (!secondCheck.issueDate) {
+                    const sparseFullRes = await worker.recognize(backRedClean);
+                    zoneText = `${zoneText}\n${(sparseFullRes?.data?.text || '').trim()}`;
+                }
+            }
+
+            await worker.setParameters({ tessedit_pageseg_mode: '3', preserve_interword_spaces: '1' });
         }
 
         const parsedData = this.parseVietnameseCCCDText(combinedText, zoneText, detectedSide);
@@ -930,7 +1094,41 @@ class VNCCCDRecognizer {
     }
 
     /**
-     * Trích xuất thông minh Ngày sinh & Ngày cấp (hỗ trợ cả DD/MM/YYYY, DD.MM.YYYY và "Ngày DD tháng MM năm YYYY")
+     * Sửa lỗi OCR phổ biến trên các chuỗi ngày tháng (O->0, l/I/|->1, S->5, B->8, khoảng trắng quanh dấu /, dấu / bị đọc thành 1 hoặc 7)
+     */
+    normalizeOCRDateDigits(rawStr) {
+        if (!rawStr) return '';
+        const fixNum = (s) => s
+            .replace(/[OoQD]/g, '0')
+            .replace(/[lI|!]/g, '1')
+            .replace(/[Zz]/g, '2')
+            .replace(/[Ss]/g, '5')
+            .replace(/B/g, '8');
+
+        // 1. Chuẩn hóa ngày có dấu phân cách (/, -, ., khoảng trắng, dấu phẩy, |) kể cả dính liền sau dấu ":" hoặc chữ
+        let res = rawStr.replace(
+            /(?<![0-9])([0-9OoQDlI|!ZzSsB]{1,2})\s*[\/\-. ,|\\]\s*([0-9OoQDlI|!ZzSsB]{1,2})\s*[\/\-. ,|\\]\s*([12][09OoQD][0-9OoQDlI|!ZzSsB]{2})(?![0-9])/g,
+            (_, dPart, mPart, yPart) => ` ${fixNum(dPart)}/${fixNum(mPart)}/${fixNum(yPart)} `
+        );
+
+        // 2. Chuẩn hóa trường hợp dấu "/" bị OCR đọc nhầm thành số "1" hoặc "7" (VD: 15/0512022, 15105/2022, 1510512022 - đúng 9 hoặc 10 ký tự, không nằm trong chuỗi 12 số CCCD)
+        res = res.replace(
+            /(?<![0-9])(\d{2})[\/17](\d{2})[\/17]((?:19|20)\d{2})(?![0-9])/g,
+            (full, dPart, mPart, yPart) => {
+                const d = parseInt(dPart, 10);
+                const m = parseInt(mPart, 10);
+                if (d >= 1 && d <= 31 && m >= 1 && m <= 12) {
+                    return ` ${dPart}/${mPart}/${yPart} `;
+                }
+                return full;
+            }
+        );
+
+        return res;
+    }
+
+    /**
+     * Trích xuất thông minh Ngày sinh & Ngày cấp (hỗ trợ mọi biến thể khoảng trắng quanh dấu "/", dính dấu ":", lỗi chữ O/l/1/7)
      */
     extractDatesByContext(text, side = 'front', cccd = '') {
         const out = { dob: '', issueDate: '' };
@@ -941,19 +1139,22 @@ class VNCCCDRecognizer {
             const d = parseInt(dd, 10);
             const m = parseInt(mm, 10);
             const y = parseInt(yyyy, 10);
+            if (isNaN(d) || isNaN(m) || isNaN(y)) return '';
             if (d < 1 || d > 31 || m < 1 || m > 12 || y < 1920 || y > 2100) return '';
             return `${y}-${String(m).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
         };
 
-        const lines = text.split('\n');
+        const lines = text.split('\n').map(l => l.trim()).filter(Boolean);
+        const dateRegexGlobal = /(?:^|[^\d])(\d{1,2})\s*[\/\-. ]\s*(\d{1,2})\s*[\/\-. ]\s*((?:19|20)\d{2})(?!\d)/g;
 
-        // 1. Quét từng dòng theo ngữ cảnh nhãn
         for (let i = 0; i < lines.length; i++) {
-            const line = lines[i];
-            const windowStr = `${line} ${lines[i + 1] || ''}`;
+            const rawLine = lines[i];
+            const prevLine = lines[i - 1] || '';
+            const nextLine = lines[i + 1] || '';
+            const contextWindow = `${prevLine} ${rawLine}`;
 
-            // Kiểm tra định dạng "Ngày 15 tháng 08 năm 2021" (Mặt sau CCCD/CMND)
-            const vnWrittenDate = windowStr.match(/Ngày\s*(\d{1,2})\s*tháng\s*(\d{1,2})\s*năm\s*((?:19|20)\d{2})/i);
+            // 1. Định dạng "Ngày 15 tháng 08 năm 2021"
+            const vnWrittenDate = `${rawLine} ${nextLine}`.match(/Ngày\s*(\d{1,2})\s*tháng\s*(\d{1,2})\s*năm\s*((?:19|20)\d{2})/i);
             if (vnWrittenDate) {
                 const iso = normalizeDate(vnWrittenDate[1], vnWrittenDate[2], vnWrittenDate[3]);
                 const yr = parseInt(vnWrittenDate[3], 10);
@@ -962,28 +1163,34 @@ class VNCCCDRecognizer {
                 }
             }
 
-            // Chuẩn hóa lỗi OCR đọc nhầm dấu "/" thành số "1" hoặc "7" dính liền (VD: 15/08/1995 -> 15/0811995)
-            const repairedLine = line.replace(/\b(\d{2})[\/1](\d{2})[\/1]((?:19|20)\d{2})\b/g, '$1/$2/$3');
-            const dateMatch = repairedLine.match(/\b(\d{1,2})[\/\-. ](\d{1,2})[\/\-. ]((?:19|20)\d{2})\b/);
-            if (!dateMatch) continue;
+            // 2. Chuẩn hóa lỗi ký tự OCR trong cụm ngày tháng (VD: "year: 15 / O5 / 2O22" hoặc "15/0512022")
+            const cleanedLine = this.normalizeOCRDateDigits(rawLine);
+            const matches = [...cleanedLine.matchAll(dateRegexGlobal)];
+            if (matches.length === 0) continue;
 
-            const iso = normalizeDate(dateMatch[1], dateMatch[2], dateMatch[3]);
-            if (!iso) continue;
-            const yr = parseInt(dateMatch[3], 10);
+            for (const m of matches) {
+                const iso = normalizeDate(m[1], m[2], m[3]);
+                if (!iso) continue;
+                const yr = parseInt(m[3], 10);
 
-            // Bỏ qua dòng Ngày hết hạn ("Có giá trị đến / Date of expiry")
-            if (/(?:Có\s*giá\s*trị|Co\s*gia\s*tri|expiry|giá\s*trị\s*đến)/i.test(line) || yr > currentYear) {
-                continue;
-            }
+                // Bỏ qua Ngày hết hạn ("Có giá trị đến / Date of expiry") hoặc năm trong tương lai
+                if (/(?:Có\s*giá\s*trị|Co\s*gia\s*tri|expiry|giá\s*trị\s*đến)/i.test(rawLine) || yr > currentYear) {
+                    continue;
+                }
 
-            if (/(?:Ngày.*sinh|Ngay.*sinh|Date\s*of\s*birth|birth)/i.test(line)) {
-                out.dob = iso;
-            } else if (/(?:Date,\s*month,\s*year|Ngày,\s*tháng,\s*năm|Date\s*of\s*issue|năm\s*cấp)/i.test(line)) {
-                if (yr <= currentYear) out.issueDate = iso;
-            } else if (side === 'back' && yr >= 2012 && yr <= currentYear && !out.issueDate) {
-                out.issueDate = iso;
-            } else if (side === 'front' && yr >= 1930 && yr <= currentYear - 14 && !out.dob) {
-                out.dob = iso;
+                // Kiểm tra ngữ cảnh dòng hiện tại + dòng ngay phía trên (trường hợp ngày cấp nằm ở dòng dưới nhãn Date, month, year)
+                if (/(?:Ngày.*sinh|Ngay.*sinh|Date\s*of\s*birth|\bbirth\b)/i.test(rawLine) && yr <= currentYear - 14) {
+                    out.dob = iso;
+                } else if (/(?:Date\s*,?\s*month|month\s*,?\s*year|Ngày\s*,?\s*tháng|Date\s*of\s*issue|năm\s*cấp)/i.test(contextWindow)) {
+                    if (yr >= 2005 && yr <= currentYear) {
+                        out.issueDate = iso;
+                    }
+                } else if (yr >= 2014 && yr <= currentYear) {
+                    // Mọi ngày hợp lệ từ 2014 -> năm hiện tại trên CCCD (không phải ngày hết hạn) chắc chắn là Ngày cấp!
+                    if (!out.issueDate) out.issueDate = iso;
+                } else if (side === 'front' && yr >= 1930 && yr <= currentYear - 14 && !out.dob) {
+                    out.dob = iso;
+                }
             }
         }
 
