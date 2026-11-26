@@ -8,6 +8,7 @@
 const GENRE_CONFIG = {
     SPREADSHEET_ID: '1MRgOcAVzDqfZy4VbH2Xt_noqCaGX6HWBoFZY5ydnAWY',
     SHEET_NAME: 'Danh_Sach_Tong_Hop',
+    LIVE_APP_URL: 'https://generali-genre-ekyc.vercel.app/',
     DEFAULT_SCRIPT_URL: ''
 };
 
@@ -667,9 +668,11 @@ function toggleSettingsModal(show) {
         modal.classList.remove('hidden');
         const qrImg = document.getElementById('shareFormQrImg');
         const shareUrlInput = document.getElementById('shareFormUrlInput');
-        const currentUrl = window.location.href;
+        const currentUrl = window.location.href.startsWith('http')
+            ? window.location.href
+            : (GENRE_CONFIG.LIVE_APP_URL || 'https://generali-genre-ekyc.vercel.app/');
         if (shareUrlInput) shareUrlInput.value = currentUrl;
-        if (qrImg && currentUrl.startsWith('http')) {
+        if (qrImg) {
             qrImg.src = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(currentUrl)}`;
             qrImg.classList.remove('hidden');
         }
