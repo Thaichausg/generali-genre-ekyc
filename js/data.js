@@ -1,10 +1,10 @@
 /**
- * Dữ liệu danh mục Tỉnh/Thành phố Việt Nam & Danh sách Ngân hàng
+ * Dữ liệu danh mục Tỉnh/Thành phố Việt Nam, Mã tỉnh CCCD Bộ Công An (001-096) & Danh sách Ngân hàng
  * Phục vụ Web Form Đăng Ký Hồ Sơ GENRE - Generali Việt Nam
  */
 
 const GENRE_DATA = {
-    // Danh sách 63 Tỉnh / Thành phố
+    // Danh sách 63 Tỉnh / Thành phố chuẩn trên Form
     provinces: [
         "TP. Hồ Chí Minh", "Hà Nội", "Đà Nẵng", "Hải Phòng", "Cần Thơ",
         "An Giang", "Bà Rịa - Vũng Tàu", "Bắc Giang", "Bắc Kạn", "Bạc Liêu",
@@ -20,6 +20,134 @@ const GENRE_DATA = {
         "Thanh Hóa", "Thừa Thiên Huế", "Tiền Giang", "Trà Vinh", "Tuyên Quang",
         "Vĩnh Long", "Vĩnh Phúc", "Yên Bái"
     ],
+
+    // Bảng mã 63 Tỉnh/Thành phố chính thức trên 3 chữ số đầu của thẻ CCCD / Thẻ Căn cước (Thông tư 07/2016/TT-BCA)
+    cccdProvinceCodes: {
+        "001": "Hà Nội",
+        "002": "Hà Giang",
+        "004": "Cao Bằng",
+        "006": "Bắc Kạn",
+        "008": "Tuyên Quang",
+        "010": "Lào Cai",
+        "011": "Điện Biên",
+        "012": "Lai Châu",
+        "014": "Sơn La",
+        "015": "Yên Bái",
+        "017": "Hòa Bình",
+        "019": "Thái Nguyên",
+        "020": "Lạng Sơn",
+        "022": "Quảng Ninh",
+        "024": "Bắc Giang",
+        "025": "Phú Thọ",
+        "026": "Vĩnh Phúc",
+        "027": "Bắc Ninh",
+        "030": "Hải Dương",
+        "031": "Hải Phòng",
+        "033": "Hưng Yên",
+        "034": "Thái Bình",
+        "035": "Hà Nam",
+        "036": "Nam Định",
+        "037": "Ninh Bình",
+        "038": "Thanh Hóa",
+        "040": "Nghệ An",
+        "042": "Hà Tĩnh",
+        "044": "Quảng Bình",
+        "045": "Quảng Trị",
+        "046": "Thừa Thiên Huế",
+        "048": "Đà Nẵng",
+        "049": "Quảng Nam",
+        "051": "Quảng Ngãi",
+        "052": "Bình Định",
+        "054": "Phú Yên",
+        "056": "Khánh Hòa",
+        "058": "Ninh Thuận",
+        "060": "Bình Thuận",
+        "062": "Kon Tum",
+        "064": "Gia Lai",
+        "066": "Đắk Lắk",
+        "067": "Đắk Nông",
+        "068": "Lâm Đồng",
+        "070": "Bình Phước",
+        "072": "Tây Ninh",
+        "074": "Bình Dương",
+        "075": "Đồng Nai",
+        "077": "Bà Rịa - Vũng Tàu",
+        "079": "TP. Hồ Chí Minh",
+        "080": "Long An",
+        "082": "Tiền Giang",
+        "083": "Bến Tre",
+        "084": "Trà Vinh",
+        "086": "Vĩnh Long",
+        "087": "Đồng Tháp",
+        "089": "An Giang",
+        "091": "Kiên Giang",
+        "092": "Cần Thơ",
+        "093": "Hậu Giang",
+        "094": "Sóc Trăng",
+        "095": "Bạc Liêu",
+        "096": "Cà Mau"
+    },
+
+    // Bảng từ đồng nghĩa / viết tắt Tỉnh Thành phục vụ nhận diện OCR tiếng Việt
+    provinceAliases: {
+        "hcm": "TP. Hồ Chí Minh",
+        "tphcm": "TP. Hồ Chí Minh",
+        "tp ho chi minh": "TP. Hồ Chí Minh",
+        "ho chi minh": "TP. Hồ Chí Minh",
+        "sai gon": "TP. Hồ Chí Minh",
+        "hn": "Hà Nội",
+        "ha noi": "Hà Nội",
+        "ha tay": "Hà Nội",
+        "ba ria vung tau": "Bà Rịa - Vũng Tàu",
+        "br vt": "Bà Rịa - Vũng Tàu",
+        "brvt": "Bà Rịa - Vũng Tàu",
+        "vung tau": "Bà Rịa - Vũng Tàu",
+        "thua thien hue": "Thừa Thiên Huế",
+        "tt hue": "Thừa Thiên Huế",
+        "tp hue": "Thừa Thiên Huế",
+        "hue": "Thừa Thiên Huế",
+        "dak lak": "Đắk Lắk",
+        "dac lac": "Đắk Lắk",
+        "daklak": "Đắk Lắk",
+        "dak nong": "Đắk Nông",
+        "dac nong": "Đắk Nông",
+        "bac can": "Bắc Kạn",
+        "bac kan": "Bắc Kạn",
+        "thanh hoa": "Thanh Hóa",
+        "khanh hoa": "Khánh Hòa",
+        "hoa binh": "Hòa Bình"
+    },
+
+    // Từ điển Họ phổ biến của người Việt (hỗ trợ khôi phục dấu tiếng Việt khi OCR bị mờ dấu)
+    commonVietnameseSurnames: {
+        "NGUYEN": "NGUYỄN",
+        "NGUYÊN": "NGUYỄN",
+        "TRAN": "TRẦN",
+        "TRÂN": "TRẦN",
+        "PHAM": "PHẠM",
+        "HOANG": "HOÀNG",
+        "HUYNH": "HUỲNH",
+        "VU": "VŨ",
+        "DANG": "ĐẶNG",
+        "ĐANG": "ĐẶNG",
+        "BUI": "BÙI",
+        "ĐÔ": "ĐỖ",
+        "NGO": "NGÔ",
+        "DUONG": "DƯƠNG",
+        "ĐINH": "ĐINH",
+        "DINH": "ĐINH",
+        "TRUONG": "TRƯƠNG",
+        "LUONG": "LƯƠNG",
+        "DOAN": "ĐOÀN",
+        "ĐOAN": "ĐOÀN",
+        "TRINH": "TRỊNH",
+        "ĐAO": "ĐÀO",
+        "PHUNG": "PHÙNG",
+        "QUACH": "QUÁCH",
+        "DIEP": "DIỆP",
+        "VUONG": "VƯƠNG",
+        "TRIEU": "TRIỆU"
+    },
 
     // Danh sách nơi cấp CCCD/CMND phổ biến để gợi ý nhanh
     issuePlaces: [
@@ -69,3 +197,7 @@ const GENRE_DATA = {
         { code: "WVN", citad: "01663001", shortName: "Woori Bank", fullName: "Ngân hàng TNHH MTV Woori Việt Nam" }
     ]
 };
+
+if (typeof module !== 'undefined' && module.exports) {
+    module.exports = { GENRE_DATA };
+}
