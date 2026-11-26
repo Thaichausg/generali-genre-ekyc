@@ -345,8 +345,6 @@ function validateAllFields() {
 
     requireField('soTaiKhoan', 'Số tài khoản');
     requireField('tenTaiKhoan', 'Tên tài khoản');
-    requireField('maSoNganHang', 'Mã ngân hàng');
-    requireField('maSoChiNhanh', 'Mã CN/PGD');
 
     if (!window.cccdScanner.images.front) {
         isValid = false;
