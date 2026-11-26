@@ -13,9 +13,11 @@ const GENRE_CONFIG = {
 
 document.addEventListener('DOMContentLoaded', () => {
     initDropdownData();
+    initSearchableSelects();
     bindFormEvents();
     restoreDraftData();
     syncAllSegmentedTracksFromInputs();
+    syncAllSearchableDisplays();
 });
 
 function selectSegmented(fieldId, value, skipCascade = false) {
@@ -95,6 +97,7 @@ function populateWardsForProvince(provinceName, preferredWard = '') {
     if (preferredWard) {
         trySelectMergedWard(preferredWard);
     }
+    syncSearchableDisplay('phuongXa');
 }
 window.populateWardsForProvince = populateWardsForProvince;
 
@@ -113,6 +116,7 @@ function trySelectMergedWard(rawWardCandidate) {
     if (wards.includes(rawWardCandidate)) {
         wardSelect.value = rawWardCandidate;
         clearFieldError(wardSelect);
+        syncSearchableDisplay('phuongXa');
         return true;
     }
 
@@ -124,12 +128,219 @@ function trySelectMergedWard(rawWardCandidate) {
     if (matched) {
         wardSelect.value = matched;
         clearFieldError(wardSelect);
+        syncSearchableDisplay('phuongXa');
         return true;
     }
 
     return false;
 }
 window.trySelectMergedWard = trySelectMergedWard;
+
+/* ==========================================================================
+   BỘ TÌM KIẾM NHANH CHO CÁC DANH SÁCH DÀI (TỈNH/THÀNH, PHƯỜNG/XÃ, NGÂN HÀNG)
+   ========================================================================== */
+let activeQuickSearchSelectId = null;
+
+function stripVietnameseSearch(str) {
+    return (str || '')
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .replace(/đ/g, 'd')
+        .replace(/Đ/g, 'd')
+        .toLowerCase()
+        .replace(/\s+/g, ' ')
+        .trim();
+}
+
+function getExtraSearchKeywords(selectId, optionValue) {
+    if ((selectId === 'noiSinh' || selectId === 'thanhPhoTinh') && GENRE_DATA.provinceAliases) {
+        const aliases = [];
+        for (const [k, canonical] of Object.entries(GENRE_DATA.provinceAliases)) {
+            if (canonical === optionValue) aliases.push(k);
+        }
+        return aliases.join(' ');
+    }
+    if (selectId === 'bankQuickPicker') {
+        return stripVietnameseSearch(optionValue);
+    }
+    return '';
+}
+
+function initSearchableSelects() {
+    document.querySelectorAll('select[data-searchable="true"]').forEach(selectEl => {
+        selectEl.classList.add('sr-only-select');
+
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'searchable-trigger is-placeholder';
+        btn.dataset.forSelect = selectEl.id;
+        btn.innerHTML = `
+            <span class="searchable-trigger-label truncate">-- Chọn --</span>
+            <span class="flex items-center gap-1.5 text-gray-400 shrink-0">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35m1.85-5.15a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
+                </svg>
+            </span>
+        `;
+
+        btn.addEventListener('click', () => openQuickSearchModal(selectEl.id));
+        selectEl.insertAdjacentElement('afterend', btn);
+
+        selectEl.addEventListener('change', () => syncSearchableDisplay(selectEl.id));
+        selectEl.addEventListener('input', () => syncSearchableDisplay(selectEl.id));
+        syncSearchableDisplay(selectEl.id);
+    });
+
+    const searchInput = document.getElementById('quickSearchInput');
+    const clearBtn = document.getElementById('btnClearQuickSearch');
+    if (searchInput) {
+        searchInput.addEventListener('input', () => {
+            if (clearBtn) {
+                clearBtn.classList.toggle('hidden', !searchInput.value);
+            }
+            renderQuickSearchOptions(searchInput.value);
+        });
+        searchInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                const firstBtn = document.querySelector('#quickSearchList .quick-search-item');
+                if (firstBtn) firstBtn.click();
+            } else if (e.key === 'Escape') {
+                closeQuickSearchModal();
+            }
+        });
+    }
+}
+
+function syncSearchableDisplay(selectId) {
+    const selectEl = document.getElementById(selectId);
+    const btn = document.querySelector(`.searchable-trigger[data-for-select="${selectId}"]`);
+    if (!selectEl || !btn) return;
+
+    const labelSpan = btn.querySelector('.searchable-trigger-label');
+    const selectedOpt = selectEl.options[selectEl.selectedIndex];
+    const hasValue = Boolean(selectEl.value && selectedOpt);
+
+    if (labelSpan) {
+        labelSpan.textContent = hasValue
+            ? selectedOpt.textContent
+            : (selectEl.options[0]?.textContent || '-- Chọn --');
+    }
+    btn.classList.toggle('is-placeholder', !hasValue);
+}
+
+function syncAllSearchableDisplays() {
+    document.querySelectorAll('select[data-searchable="true"]').forEach(el => {
+        syncSearchableDisplay(el.id);
+    });
+}
+window.syncAllSearchableDisplays = syncAllSearchableDisplays;
+
+function openQuickSearchModal(selectId) {
+    if (selectId === 'phuongXa') {
+        const provVal = document.getElementById('thanhPhoTinh')?.value;
+        if (!provVal) {
+            showToast('Vui lòng chọn Thành phố / Tỉnh trước', 'info');
+            openQuickSearchModal('thanhPhoTinh');
+            return;
+        }
+    }
+
+    const selectEl = document.getElementById(selectId);
+    const modal = document.getElementById('quickSearchModal');
+    const titleEl = document.getElementById('quickSearchTitle');
+    const searchInput = document.getElementById('quickSearchInput');
+    const clearBtn = document.getElementById('btnClearQuickSearch');
+    if (!selectEl || !modal || !searchInput) return;
+
+    activeQuickSearchSelectId = selectId;
+    if (titleEl) {
+        titleEl.textContent = selectEl.dataset.searchTitle || 'Chọn danh mục';
+    }
+
+    searchInput.value = '';
+    if (clearBtn) clearBtn.classList.add('hidden');
+    modal.classList.remove('hidden');
+    document.body.style.overflow = 'hidden';
+
+    renderQuickSearchOptions('');
+    setTimeout(() => searchInput.focus(), 40);
+}
+window.openQuickSearchModal = openQuickSearchModal;
+
+function closeQuickSearchModal() {
+    const modal = document.getElementById('quickSearchModal');
+    if (modal) modal.classList.add('hidden');
+    activeQuickSearchSelectId = null;
+    document.body.style.overflow = '';
+}
+window.closeQuickSearchModal = closeQuickSearchModal;
+
+function clearQuickSearchInput() {
+    const searchInput = document.getElementById('quickSearchInput');
+    const clearBtn = document.getElementById('btnClearQuickSearch');
+    if (!searchInput) return;
+    searchInput.value = '';
+    if (clearBtn) clearBtn.classList.add('hidden');
+    renderQuickSearchOptions('');
+    searchInput.focus();
+}
+window.clearQuickSearchInput = clearQuickSearchInput;
+
+function renderQuickSearchOptions(query) {
+    const listEl = document.getElementById('quickSearchList');
+    const selectEl = activeQuickSearchSelectId ? document.getElementById(activeQuickSearchSelectId) : null;
+    if (!listEl || !selectEl) return;
+
+    const normQuery = stripVietnameseSearch(query);
+    const currentVal = selectEl.value;
+    listEl.innerHTML = '';
+
+    let matchCount = 0;
+    const frag = document.createDocumentFragment();
+
+    Array.from(selectEl.options).forEach(opt => {
+        if (!opt.value) return; // Bỏ dòng placeholder "-- Chọn --"
+
+        if (normQuery) {
+            const haystack = `${stripVietnameseSearch(opt.textContent)} ${getExtraSearchKeywords(selectEl.id, opt.value)}`;
+            const queryTokens = normQuery.split(' ').filter(Boolean);
+            const allMatched = queryTokens.every(tok => haystack.includes(tok));
+            if (!allMatched) return;
+        }
+
+        matchCount++;
+        const itemBtn = document.createElement('button');
+        itemBtn.type = 'button';
+        const isSelected = opt.value === currentVal;
+        itemBtn.className = `quick-search-item${isSelected ? ' selected' : ''}`;
+        itemBtn.innerHTML = `
+            <span class="truncate">${opt.textContent}</span>
+            ${isSelected ? '<span class="text-[#C21B17] font-extrabold shrink-0">✓</span>' : ''}
+        `;
+        itemBtn.addEventListener('click', () => {
+            selectEl.value = opt.value;
+            clearFieldError(selectEl);
+            syncSearchableDisplay(selectEl.id);
+            selectEl.dispatchEvent(new Event('change', { bubbles: true }));
+            selectEl.dispatchEvent(new Event('input', { bubbles: true }));
+            closeQuickSearchModal();
+        });
+        frag.appendChild(itemBtn);
+    });
+
+    if (matchCount === 0) {
+        const emptyDiv = document.createElement('div');
+        emptyDiv.className = 'px-4 py-8 text-center text-sm text-gray-400';
+        emptyDiv.textContent = 'Không tìm thấy kết quả phù hợp';
+        listEl.appendChild(emptyDiv);
+    } else {
+        listEl.appendChild(frag);
+    }
+}
 
 function initDropdownData() {
     const noiSinhSelect = document.getElementById('noiSinh');
@@ -591,6 +802,7 @@ function resetForNewRegistration() {
     selectSegmented('gioiTinh', 'Nam');
     selectSegmented('tinhTrangHonNhan', 'Độc thân');
     selectSegmented('loaiGiayTo', 'Căn cước Công dân');
+    syncAllSearchableDisplays();
     document.querySelectorAll('.field-error-msg').forEach(e => e.classList.add('hidden'));
     document.querySelectorAll('.input-error').forEach(e => e.classList.remove('input-error'));
 

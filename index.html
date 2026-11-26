@@ -136,8 +136,8 @@
 
                     <div class="flat-field">
                         <label for="noiSinh" class="flat-label">Nơi sinh <span class="req">*</span></label>
-                        <div class="flat-select-wrap">
-                            <select id="noiSinh" class="flat-select form-select">
+                        <div class="flat-select-wrap searchable-wrap">
+                            <select id="noiSinh" class="flat-select form-select" data-searchable="true" data-search-title="Nơi sinh">
                                 <option value="">-- Chọn --</option>
                             </select>
                         </div>
@@ -237,8 +237,8 @@
 
                     <div class="flat-field">
                         <label for="thanhPhoTinh" class="flat-label">Thành phố / Tỉnh <span class="req">*</span></label>
-                        <div class="flat-select-wrap">
-                            <select id="thanhPhoTinh" class="flat-select form-select">
+                        <div class="flat-select-wrap searchable-wrap">
+                            <select id="thanhPhoTinh" class="flat-select form-select" data-searchable="true" data-search-title="Thành phố / Tỉnh">
                                 <option value="">-- Chọn Tỉnh / Thành phố --</option>
                             </select>
                         </div>
@@ -247,8 +247,8 @@
 
                     <div class="flat-field">
                         <label for="phuongXa" class="flat-label">Phường / Xã <span class="req">*</span></label>
-                        <div class="flat-select-wrap">
-                            <select id="phuongXa" class="flat-select form-select">
+                        <div class="flat-select-wrap searchable-wrap">
+                            <select id="phuongXa" class="flat-select form-select" data-searchable="true" data-search-title="Phường / Xã">
                                 <option value="">-- Chọn Phường / Xã --</option>
                             </select>
                         </div>
@@ -288,8 +288,8 @@
 
                     <div class="flat-field">
                         <label for="bankQuickPicker" class="flat-label">Tên ngân hàng</label>
-                        <div class="flat-select-wrap">
-                            <select id="bankQuickPicker" class="flat-select form-select">
+                        <div class="flat-select-wrap searchable-wrap">
+                            <select id="bankQuickPicker" class="flat-select form-select" data-searchable="true" data-search-title="Tên ngân hàng">
                                 <option value="">-- Chọn ngân hàng --</option>
                             </select>
                         </div>
@@ -526,6 +526,32 @@
                     </button>
                 </div>
             </div>
+        </div>
+    </div>
+
+    <!-- MODAL TÌM KIẾM NHANH DANH SÁCH DÀI (TỈNH/THÀNH, PHƯỜNG/XÃ, NGÂN HÀNG) -->
+    <div id="quickSearchModal" class="hidden fixed inset-0 z-50 bg-black/50 flex items-start justify-center pt-3 sm:pt-12 px-3" onclick="if(event.target===this) closeQuickSearchModal()">
+        <div class="w-full max-w-[560px] bg-white rounded-xl border border-gray-200 overflow-hidden flex flex-col max-h-[56dvh] sm:max-h-[480px] shadow-xl">
+            <div class="px-4 py-3 border-b border-gray-200 flex items-center justify-between bg-white">
+                <h3 id="quickSearchTitle" class="text-sm font-extrabold text-gray-900 uppercase">Chọn danh mục</h3>
+                <button type="button" onclick="closeQuickSearchModal()" class="w-8 h-8 rounded-lg bg-gray-100 text-gray-700 font-bold text-xs flex items-center justify-center">
+                    ✕
+                </button>
+            </div>
+
+            <div class="p-3 border-b border-gray-200 bg-gray-50">
+                <div class="relative flex items-center">
+                    <svg class="w-4 h-4 text-gray-400 absolute left-3.5 pointer-events-none" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35m1.85-5.15a7 7 0 11-14 0 7 7 0 0114 0z" />
+                    </svg>
+                    <input type="search" id="quickSearchInput" autocomplete="off" class="w-full h-11 pl-10 pr-9 rounded-lg border border-gray-300 bg-white text-base font-medium text-gray-900 focus:outline-none focus:border-[#C21B17]" placeholder="Nhập từ khóa để tìm nhanh..." />
+                    <button type="button" id="btnClearQuickSearch" onclick="clearQuickSearchInput()" class="hidden absolute right-2.5 w-6 h-6 rounded-full bg-gray-200 text-gray-600 text-xs flex items-center justify-center">
+                        ✕
+                    </button>
+                </div>
+            </div>
+
+            <div id="quickSearchList" class="flex-1 overflow-y-auto divide-y divide-gray-100"></div>
         </div>
     </div>
 

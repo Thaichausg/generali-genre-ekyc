@@ -216,8 +216,88 @@ body {
     pointer-events: none;
 }
 
+.flat-select-wrap.searchable-wrap::after {
+    display: none;
+}
+
 .flat-select {
     padding-right: 36px;
+}
+
+/* Ô chọn có Tìm Kiếm Nhanh (Searchable Select) */
+.sr-only-select {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    border: 0;
+    pointer-events: none;
+}
+
+.searchable-trigger {
+    width: 100%;
+    height: 48px;
+    padding: 0 14px;
+    border: 1px solid var(--gen-border);
+    border-radius: 10px;
+    background-color: #FFFFFF;
+    font-size: 16px;
+    font-weight: 500;
+    color: var(--gen-ink);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    text-align: left;
+    cursor: pointer;
+    transition: border-color 0.15s ease;
+}
+
+.searchable-trigger.is-placeholder {
+    color: #6B7280;
+    font-weight: 400;
+}
+
+.searchable-trigger:focus,
+.searchable-trigger:active {
+    outline: none;
+    border-color: var(--gen-red);
+}
+
+.sr-only-select.input-error + .searchable-trigger {
+    border-color: #DC2626;
+    background-color: #FEF2F2;
+}
+
+.quick-search-item {
+    width: 100%;
+    min-height: 46px;
+    padding: 10px 16px;
+    border: none;
+    border-bottom: 1px solid var(--gen-line);
+    background-color: #FFFFFF;
+    font-size: 15px;
+    font-weight: 500;
+    color: var(--gen-ink);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    text-align: left;
+    cursor: pointer;
+}
+
+.quick-search-item:active {
+    background-color: #F3F4F6;
+}
+
+.quick-search-item.selected {
+    background-color: #FEF2F2;
+    color: var(--gen-red);
+    font-weight: 700;
 }
 
 .flat-input.input-error,
